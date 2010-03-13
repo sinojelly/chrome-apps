@@ -1,0 +1,51 @@
+<html>
+<head><title>Sina Twitter Reader Extension Options</title></head>
+<script type="text/javascript">
+
+// Saves options to localStorage.
+function save_options() {
+  var select = document.getElementById("count");
+  var count = select.children[select.selectedIndex].value;
+  localStorage["count"] = count;
+
+  // Update status to let user know options were saved.
+  var status = document.getElementById("status");
+  status.innerHTML = "Options Saved.";
+  setTimeout(function() {
+    status.innerHTML = "";
+  }, 750);
+}
+
+// Restores select box state to saved value from localStorage.
+function restore_options() {
+  var favorite = localStorage["count"];
+  if (!favorite) {
+    return;
+  }
+  var select = document.getElementById("count");
+  for (var i = 0; i < select.children.length; i++) {
+    var child = select.children[i];
+    if (child.value == favorite) {
+      child.selected = "true";
+      break;
+    }
+  }
+}
+
+</script>
+
+<body onload="restore_options()">
+
+一次显示微博的条数:
+<select id="count">
+ <option value="20">20</option>
+ <option value="40">40</option>
+ <option value="60">60</option>
+ <option value="80">80</option>
+</select>
+
+<br>
+<button onclick="save_options()">Save</button>
+<span id="status"></span>
+</body>
+</html>

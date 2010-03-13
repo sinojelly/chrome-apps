@@ -1,0 +1,108 @@
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+<style>
+body {
+	font-family: Tahoma;
+	font-size: 12px;
+	text-decoration: none;
+	margin-top: 0px;
+	margin-right: 0px;
+	margin-left: 0px;
+	margin-bottom: 0px;
+	background-color: #FFFFFF;
+}
+table{
+    font-family: Tahoma;
+	font-size: 12px;
+	width: 120px;
+}
+td{
+cursor:hand;
+background-color:#ffffff;
+		color:#000000;
+}
+</style>
+<script>
+
+var lastShowId = "";
+
+var u = "";
+var isNewTab = "";
+function getBaseInfo()
+{
+	// 更新点击时的最大微博id
+	var backgroundPage = chrome.extension.getBackgroundPage();
+	backgroundPage.maxIdWhenClicked = backgroundPage.maxId;
+	
+	//保存变量
+	u = backgroundPage.getUrl();
+	isNewTab = backgroundPage.isNewTab;
+}
+
+function updatePopup()
+{
+	 getBaseInfo();
+	 var myurl = u;
+	 if (lastShowId != "")
+	 {
+	 	  myurl += "&max_id=";    
+	 	  lastShowIdInt = parseInt(lastShowId); 
+	 	  lastShowIdInt = lastShowIdInt - 1;   
+	 	  myurl += lastShowIdInt;	 	  
+	 }
+	 
+	 //document.body.innerHTML = "";
+	 var xmlHttp = new XMLHttpRequest();
+	 xmlHttp.open('GET', myurl, true);     
+   xmlHttp.onload = function() {
+   if (xmlHttp.readyState == 4) {
+         var allStatus = xmlHttp.responseXML.getElementsByTagName("status");
+         for (var i = 0, one_status; one_status = allStatus[i]; i++) {
+         	   //if (i == 0)
+         	   //{
+         	   //	  maxId = one_status.getElementsByTagName('id')[0].textContent;
+         	   //}
+         	   var one_status_str = "<HR><font color=\"#808080\">";//"";
+         	   one_status_str += one_status.getElementsByTagName('created_at')[0].textContent+"</font>&nbsp;&nbsp;";
+         	   var user_node = one_status.getElementsByTagName('user')[0];
+         	   one_status_str += "<a href=\"http://t.sina.com.cn/"+user_node.getElementsByTagName('id')[0].textContent+"\">"; // 通过id可以访问用户微博主页
+         	   one_status_str += user_node.getElementsByTagName('screen_name')[0].textContent+"</a><br>";
+         	   one_status_str += one_status.getElementsByTagName('text')[0].textContent+"<br>";
+         	   // 转发信息
+         	   var reTweet = one_status.getElementsByTagName('retweeted_status');
+         	   if (reTweet.length > 0)
+         	   {
+         	   	   reTweet_text = reTweet[0].getElementsByTagName('text');
+         	   	   if (reTweet_text.length > 0)
+         	   	   {
+         	   	   	  one_status_str += "RT //" + reTweet_text[0].textContent+"<br>";
+         	   	   }
+         	   }
+         	   document.body.innerHTML+="<p>" + one_status_str;
+         	   var img_elem = one_status.getElementsByTagName('original_pic')[0];
+         	   if (null != img_elem)
+         	   {
+				        var img = document.createElement("image");
+				        img.src = img_elem.textContent;
+				        document.body.appendChild(img);
+				        //document.body.innerHTML+="<img src=\""+img_elem.textContent+"\" width=\"600\" height=\"600\"/>";
+				     }
+				     document.body.innerHTML+="</p>";
+				     lastShowId = one_status.getElementsByTagName('id')[0].textContent;			     
+				  }
+				  if (isNewTab == "yes")
+				  {
+				     document.body.innerHTML+="<table border=0 id=t1><tr><td onclick=\"updatePopup();\"><img src='home.png' width=20 height=20> More </td></tr></table>";
+				  }
+      }
+  }
+  xmlHttp.send(myurl);
+}
+
+updatePopup();
+
+ </script>
+<body>
+
+</body>
+</html>

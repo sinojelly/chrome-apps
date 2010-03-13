@@ -1,0 +1,140 @@
+<html> 
+	
+<head> 
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+<script> 
+localStorage
+ 
+ 
+var myTwitterTitle = "";
+
+
+var maxId = "";
+var maxIdWhenClicked = ""; // max id when clicked
+var updatedCount ="";
+var isNewTab = "no";
+ 
+function showTooltip()
+{
+  myTwitterTitle = updatedCount+"/新微博\n"; 
+  chrome.browserAction.setTitle({title:myTwitterTitle});
+  chrome.browserAction.setIcon({path:"icon.png"});  
+  chrome.browserAction.setBadgeBackgroundColor({color:[57,239,244, 240]});  
+
+  chrome.browserAction.setBadgeText({text: updatedCount==0?"":updatedCount>9999?">N":updatedCount+""});
+}
+
+function getUrl()
+{
+	var u = "http://api.t.sina.com.cn/statuses/friends_timeline.xml?source=2399968176";
+//var u = "http://api.t.sina.com.cn/statuses/user_timeline.xml?user_id=1639650452&source=2399968176"; //潘帕斯不羁的风
+//var u = "http://api.t.sina.com.cn/statuses/user_timeline.xml?user_id=1494759712&source=2399968176"; //月光博客
+   var count = "&count=";
+   if (localStorage["count"])
+   {
+   	  count+= localStorage["count"];
+   }
+   else
+   {
+   	  count+= "40";
+   }
+   
+	 return u+count;
+}
+
+
+function isUpdated()
+{
+	 var myurl = getUrl();
+	 if (maxIdWhenClicked != "")
+	 {
+	 	  myurl += "&since_id=";    
+	 	  maxIdWhenClickedInt = parseInt(maxIdWhenClicked); 
+	 	  maxIdWhenClickedInt = maxIdWhenClickedInt + 1;   
+	 	  myurl += maxIdWhenClickedInt;	 	  
+	 }
+
+	 //document.body.innerHTML = "";
+	 var xmlHttp = new XMLHttpRequest();
+	 xmlHttp.open('GET', myurl, true);     
+   xmlHttp.onload = function() {
+   if (xmlHttp.readyState == 4) {
+         var allStatus = xmlHttp.responseXML.getElementsByTagName("status");
+         if (allStatus.length > 0)
+         {
+         	 maxId = allStatus[0].getElementsByTagName('id')[0].textContent;	
+         }
+         updatedCount = allStatus.length;
+         showTooltip();
+      }
+  }
+  xmlHttp.send(myurl);
+}
+ 
+
+function login()
+{
+   isUpdated();
+}
+function init()
+{
+  chrome.browserAction.setIcon({path:"sina_not_logged_in.png"}); 
+  chrome.browserAction.setBadgeBackgroundColor({color:[190, 190, 190, 230]}); 
+  chrome.browserAction.setBadgeText({text: updatedCount});
+  chrome.browserAction.setTitle({title:myTwitterTitle});
+ // chrome.browserAction.onClicked.addListener(function(tab) { goMyTwitter();});
+  login();
+  
+}
+
+
+//定义一个反复执行的调用 
+var id=window.setInterval(isUpdated,1*60*1000);//1*60*1000 1分钟循环
+ 
+ 
+function getPopupUrl() {
+  //var url = "chrome-extension://lhndnlbfbljchljcgbhpncbkbgeibcba/popup.html";
+  var url =  chrome.extension.getURL("popup.html"); // work ok
+  return url;
+}
+
+function isPopupUrl(url) {
+  // This is the Gmail we're looking for if:
+  // - starts with the correct gmail url
+  // - doesn't contain any other path chars
+  var popup = getPopupUrl();
+  if (url.indexOf(popup) != 0)
+    return false;
+
+  return url.length == popup.length || url[popup.length] == '?' ||
+                       url[popup.length] == '#';
+}
+ 
+ function goNewTab() {
+ 	//maxIdWhenClicked = maxId;
+ 	isNewTab = "yes";
+  chrome.tabs.getAllInWindow(undefined, function(tabs) {
+    for (var i = 0, tab; tab = tabs[i]; i++) {
+      if (tab.url && isPopupUrl(tab.url)) {
+        //chrome.tabs.update(tab.id, {selected: true});
+        //return;
+        chrome.tabs.remove(tab.id);
+      }
+    }
+    chrome.tabs.create({url: getPopupUrl()});
+  });
+}
+
+// Called when the user clicks on the browser action.
+chrome.browserAction.onClicked.addListener(function(tab) {
+  goNewTab();
+});
+ 
+
+</script> 
+</head> 
+<body onload="init()"> 
+<img id="logged_in" src="icon.png"> 
+<canvas id="canvas" width="19" height="19"> 
+</body> 
+</html>
