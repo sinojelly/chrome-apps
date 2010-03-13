@@ -20,7 +20,8 @@ function save_options() {
 function restore_options() {
   var favorite = localStorage["count"];
   if (!favorite) {
-    return;
+    //return;
+    favorite = "40"; // д╛хо40
   }
   var select = document.getElementById("count");
   for (var i = 0; i < select.children.length; i++) {
