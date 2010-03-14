@@ -1,5 +1,61 @@
-<html>
-<head><title>Sina Twitter Reader Extension Options</title></head>
+﻿<html>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+<head>
+	
+<title>Sina Twitter Reader Extension Options</title>
+<style>
+body {
+  font-family:helvetica, arial, sans-serif;
+  font-size:80%;
+  margin:10px;
+}
+
+td {  font-family:helvetica, arial, sans-serif;
+  font-size:80%;
+  margin:10px;
+  }   
+
+#header {
+  padding-bottom:1.5em;
+  padding-top:1.5em;
+}
+
+#header h1 {
+  font-size: 156%;
+  display:inline;
+  padding-bottom:43px;
+  padding-left:75px;
+  padding-top:40px;
+  background:url(icon.png) no-repeat;
+  background-size:67px;
+  background-position:1px 18px;
+}
+
+.section-header {
+  background:#ebeff9;
+  border-top:1px solid #b5c7de;
+  font-size:99%;
+  padding:3px 0 2px 5px;
+  font-weight:bold;
+  margin-bottom:1em;
+  margin-top:4em;
+}
+
+.section-header.first {
+  margin-top:1em;
+}
+
+#custom-domain {
+  width:300px;
+  margin-left:2px;
+}
+
+#footer {
+  margin-top:4em;
+}
+</style>
+</head>
+
 <script type="text/javascript">
 
 // Saves options to localStorage.
@@ -7,6 +63,10 @@ function save_options() {
   var select = document.getElementById("count");
   var count = select.children[select.selectedIndex].value;
   localStorage["count"] = count;
+
+  select = document.getElementById("twitterUrl");
+  var twitterUrl = select.children[select.selectedIndex].value;
+  localStorage["twitterUrl"] = twitterUrl;
 
   // Update status to let user know options were saved.
   var status = document.getElementById("status");
@@ -18,10 +78,12 @@ function save_options() {
 
 // Restores select box state to saved value from localStorage.
 function restore_options() {
+	show_twitter_list();
+	restore_url_options();
   var favorite = localStorage["count"];
   if (!favorite) {
     //return;
-    favorite = "40"; // Ĭ��40
+    favorite = "40"; // 默认40
   }
   var select = document.getElementById("count");
   for (var i = 0; i < select.children.length; i++) {
@@ -31,22 +93,195 @@ function restore_options() {
       break;
     }
   }
+
+  var twitterUrl = localStorage["twitterUrl"];
+  if (!twitterUrl) {
+    //return;
+    twitterUrl = "http://api.t.sina.com.cn/statuses/friends_timeline.xml?source=2399968176"; // 默认我的首页
+  }
+  
+  select = document.getElementById("twitterUrl");
+  for (var i = 0; i < select.children.length; i++) {
+    var child = select.children[i];
+    if (child.value == twitterUrl) {
+      child.selected = "true";
+      break;
+    }
+  }
+}
+
+function construct_twitter_url(id)
+{
+	return "http://api.t.sina.com.cn/statuses/user_timeline.xml?user_id="+id+"&source=2399968176";
+}
+
+function restore_url_options()
+{
+	for (var i = 0; ; i++)
+	{
+		var twitterName = localStorage["twitterName"+i];
+		
+		if (!twitterName)
+		{
+			break;
+		}
+		var twitterId = localStorage["twitterId"+i];
+		add_url_option(twitterName, twitterId);
+  }
+}
+function add_url_option(twitterName, twitterId)
+{
+		var select = document.getElementById("twitterUrl");
+		one_option = document.createElement("option");
+		one_option.value = construct_twitter_url(twitterId);
+		one_option.text = twitterName;
+		select.appendChild(one_option);
+}
+
+function store_url_option()
+{
+	var twitterName = document.getElementById("twitterName");
+	var twitterId = document.getElementById("twitterId");
+	var twitterNameValue = twitterName.value; //通过.value只能获取一次，如果要使用多次就要先保存
+	var twitterIdValue = twitterId.value;
+	add_url_option(twitterNameValue, twitterIdValue);
+
+	for (var i = 0; ; i++)
+	{
+		var twitterName = localStorage["twitterName"+i];
+		if (!twitterName)
+		{
+			break;
+		}
+  }
+  localStorage["twitterName"+i] = twitterNameValue;
+  localStorage["twitterId"+i] = twitterIdValue;
+  show_twitter_list();
+}
+
+function remove_url_option()
+{
+	var twitterIdNode = document.getElementById("twitterIdDelete");
+	var twitterIdValue = twitterIdNode.value;
+	var i = 0;
+
+	for (; ; i++)
+	{
+		var twitterId = localStorage["twitterId"+i];
+		if (!twitterId)
+		{
+			return;
+		}
+		if (twitterIdValue == twitterId)
+		{
+			i++;
+			break;
+		}
+  }
+  for (;;i++)
+  {
+  	if (!localStorage["twitterName"+i])
+		{
+			delete localStorage["twitterName"+(i-1)];
+	    delete localStorage["twitterId"+(i-1)];
+	    show_twitter_list();
+			return;
+		}
+	  localStorage["twitterName"+(i-1)] = localStorage["twitterName"+i];
+	  localStorage["twitterId"+(i-1)] = localStorage["twitterId"+i];
+  }
+}
+
+function show_twitter(twitterName, twitterId)
+{
+	var twitterList = document.getElementById("twitterList");
+	var trNode = document.createElement("tr");
+
+	var tdNode = document.createElement("td");
+	var currenttext = document.createTextNode(twitterId);
+	tdNode.appendChild(currenttext);
+	trNode.appendChild(tdNode);
+
+	tdNode = document.createElement("td");
+	currenttext = document.createTextNode(twitterName);
+	tdNode.appendChild(currenttext);
+	trNode.appendChild(tdNode);
+	
+	twitterList.appendChild(trNode);
+}
+
+function clear_twitter_list()
+{
+	var twitterList = document.getElementById("twitterList");
+	twitterList.innerHTML = ""; // 这种方法清空表格内容非常有效
+}
+function show_twitter_list()
+{
+	clear_twitter_list();
+	for (var i = 0; ; i++)
+	{
+		var twitterName = localStorage["twitterName"+i];
+		
+		if (!twitterName)
+		{
+			break;
+		}
+		var twitterId = localStorage["twitterId"+i];
+		show_twitter(twitterName, twitterId);
+  }
 }
 
 </script>
 
 <body onload="restore_options()">
 
-һ����ʾ΢��������:
+<div id="header"><h1>新浪微博阅读器配置</h1></div>
+
+<div class="section-header first">选项设置</div>
+一次显示微博的条数:
 <select id="count">
  <option value="20">20</option>
  <option value="40">40</option>
  <option value="60">60</option>
  <option value="80">80</option>
+ <option value="100">100</option>
+ <option value="120">120</option>
+ <option value="140">140</option>
+ <option value="160">160</option>
+ <option value="180">180</option>
+ <option value="200">200</option>
 </select>
-
 <br>
-<button onclick="save_options()">Save</button>
+<br>
+浏览指定的微博:
+<select id="twitterUrl">
+ <option value="http://api.t.sina.com.cn/statuses/friends_timeline.xml?source=2399968176">我的首页</option>
+</select>
+<br>
+注：默认我的首页，提供几个分享图片较多的微博供选择，用户还可以在"选项定制"中添加喜欢的微博。
+<br>
+<br>
+<button onclick="save_options()">保存</button>
 <span id="status"></span>
+<br>
+<div class="section-header first">选项定制</div>
+<br>
+增加微博选项：<br>
+微博名称: <input type="text" id="twitterName" ></input> 微博ID: <input type="text" id="twitterId" ></input>
+<button onclick="store_url_option()">增加</button>
+<br>
+注：增加的微博会在"浏览指定的微博"中出现。
+<br>
+<br>
+删除微博选项：<br>
+微博ID: <input type="text" id="twitterIdDelete" ></input>
+<button onclick="remove_url_option()">删除</button>
+<br>
+注：在下次设置选项时生效。
+<br>
+<br>
+已定制的微博选项：<br>
+<table id="twitterList">
+</table>
 </body>
 </html>

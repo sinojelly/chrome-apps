@@ -8,15 +8,15 @@ localStorage
  
 var myTwitterTitle = "";
 
+var tiwtterHome = "http://api.t.sina.com.cn/statuses/friends_timeline.xml?source=2399968176";
 
 var maxId = "";
 var maxIdWhenClicked = ""; // max id when clicked
 var updatedCount ="";
-var isNewTab = "no";
  
 function showTooltip()
 {
-  myTwitterTitle = updatedCount+"/新微博\n"; 
+  myTwitterTitle = updatedCount+"/新微博\n"+getTwitterName(); 
   chrome.browserAction.setTitle({title:myTwitterTitle});
   chrome.browserAction.setIcon({path:"icon.png"});  
   chrome.browserAction.setBadgeBackgroundColor({color:[57,239,244, 240]});  
@@ -26,7 +26,11 @@ function showTooltip()
 
 function getUrl()
 {
-	var u = "http://api.t.sina.com.cn/statuses/friends_timeline.xml?source=2399968176";
+	var u = localStorage["twitterUrl"];
+	if (!u)
+	{
+		u = tiwtterHome;
+	}
 //var u = "http://api.t.sina.com.cn/statuses/user_timeline.xml?user_id=1639650452&source=2399968176"; //潘帕斯不羁的风
 //var u = "http://api.t.sina.com.cn/statuses/user_timeline.xml?user_id=1494759712&source=2399968176"; //月光博客
    var count = "&count=";
@@ -42,11 +46,11 @@ function getUrl()
 	 return u+count;
 }
 
-
 function isUpdated()
 {
 	 var myurl = getUrl();
-	 if (maxIdWhenClicked != "")
+	 maxIdWhenClicked = localStorage["maxIdWhenClicked"];
+	 if (maxIdWhenClicked)
 	 {
 	 	  myurl += "&since_id=";    
 	 	  maxIdWhenClickedInt = parseInt(maxIdWhenClicked); 
@@ -83,52 +87,61 @@ function init()
   chrome.browserAction.setBadgeText({text: updatedCount});
   chrome.browserAction.setTitle({title:myTwitterTitle});
  // chrome.browserAction.onClicked.addListener(function(tab) { goMyTwitter();});
+  if (!localStorage["twitterName0"]) // 未保存twitterName/Id信息
+  {
+  	localStorage["twitterName0"] = "潘帕斯不羁的风";
+  	localStorage["twitterId0"] = "1639650452";
+
+  	localStorage["twitterName1"] = "美女精品图库";
+  	localStorage["twitterId1"] = "1642591945";
+
+  	localStorage["twitterName2"] = "图说天下";
+  	localStorage["twitterId2"] = "1364882532";  	
+
+  	localStorage["twitterName3"] = "科学探索";
+  	localStorage["twitterId3"] = "1642632622";
+  }
   login();
-  
 }
 
+function stripId(s) { 
+     return s.replace(/http:\/\/api.t.sina.com.cn\/statuses\/user_timeline.xml\?user_id=(\d+)&.*/gi, "$1"); 
+}
+
+function getTwitterName()
+{
+	var twitterUrl = getUrl();
+	var twitterId = stripId(twitterUrl);
+
+	if (twitterId.indexOf(tiwtterHome)==0)
+	{
+		return "我的首页";
+	}
+	
+	for (var i = 0; ; i++)
+	{
+		var twitterName = localStorage["twitterName"+i];
+		if (!twitterName)
+		{
+			break;
+		}
+		if (twitterId == localStorage["twitterId"+i])
+		{
+			return twitterName;
+		}
+  }
+  return "未知微博";
+}
 
 //定义一个反复执行的调用 
 var id=window.setInterval(isUpdated,1*60*1000);//1*60*1000 1分钟循环
  
- 
-function getPopupUrl() {
-  //var url = "chrome-extension://lhndnlbfbljchljcgbhpncbkbgeibcba/popup.html";
-  var url =  chrome.extension.getURL("popup.html"); // work ok
-  return url;
-}
 
-function isPopupUrl(url) {
-  // This is the Gmail we're looking for if:
-  // - starts with the correct gmail url
-  // - doesn't contain any other path chars
-  var popup = getPopupUrl();
-  if (url.indexOf(popup) != 0)
-    return false;
-
-  return url.length == popup.length || url[popup.length] == '?' ||
-                       url[popup.length] == '#';
-}
- 
- function goNewTab() {
- 	//maxIdWhenClicked = maxId;
- 	isNewTab = "yes";
-  chrome.tabs.getAllInWindow(undefined, function(tabs) {
-    for (var i = 0, tab; tab = tabs[i]; i++) {
-      if (tab.url && isPopupUrl(tab.url)) {
-        //chrome.tabs.update(tab.id, {selected: true});
-        //return;
-        chrome.tabs.remove(tab.id);
-      }
-    }
-    chrome.tabs.create({url: getPopupUrl()});
-  });
-}
 
 // Called when the user clicks on the browser action.
-chrome.browserAction.onClicked.addListener(function(tab) {
-  goNewTab();
-});
+//chrome.browserAction.onClicked.addListener(function(tab) {
+//  goNewTab();
+//});
  
 
 </script> 
