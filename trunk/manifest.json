@@ -12,5 +12,5 @@
    "name": "Sina Twitter Reader",
    "permissions": [ "tabs", "http://*.sina.com.cn/", "https://*.sina.com,cn/" ],
    "update_url": "http://clients2.google.com/service/update2/crx",
-   "version": "1.1.1"
+   "version": "1.1.2"
 }
