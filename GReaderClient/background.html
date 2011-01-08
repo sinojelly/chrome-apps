@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<!-- Copyright 2009 Google Inc. All Rights Reserved. -->
+<html>
+  <head>
+    <script type="text/javascript" src="prefs.js"></script>
+    <script type="text/javascript" src="closure.js"></script>
+    <script type="text/javascript" src="main.js"></script>
+    <script type="text/javascript">
+      // Kick off auto-refreshing
+      startRequest();
+
+      // Also monitor tabs for a Reader tab, and use its unread count if
+      // possible (can't use chrome.tabs.onUpdated since it doesn't fire for
+      // title changes)
+      window.setInterval(function() {
+        getReaderTab(function(tab) {
+          if (tab && tab.title) {
+            var match = TITLE_UNREAD_COUNT_RE.exec(tab.title);
+            if (match && match[1]) {
+              //updateUnreadCount(parseInt(match[1], 10), match[2] == '+');
+              scheduleRequest();
+            }
+          }
+        });
+      }, 2000);
+  </script>
+  </head>
+  <body>
+
+  </body>
+</html>

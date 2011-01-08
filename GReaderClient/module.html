@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<!-- Copyright 2009 Google Inc. All Rights Reserved. -->
+<head>
+  <style type="text/css">
+    body {
+      padding: 0;
+      margin: 0;
+      display: none;
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+    }
+
+    .link {
+      color: #68d;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    #header {
+      padding: 5px;
+      border-bottom: solid 1px #eee;
+    }
+
+    #container {
+      position: relative;
+    }
+
+    #placeholder,
+    #module {
+      width: 320px;
+      height: 382px;
+    }
+
+    #loading {
+      position: absolute;
+      width: 320px;
+      top: 180px;
+      text-align: center;
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      font-weight: bold;
+      color: #aaa;
+    }
+
+    #module {
+      position: absolute;
+      top: 0;
+      left: 0;
+      border: 0;
+      overflow: hidden;
+    }
+  </style>
+  <script type="text/javascript" src="closure.js"></script>
+  <script type="text/javascript" src="prefs.js"></script>
+  <script type="text/javascript" src="main.js"></script>
+  <script type="text/javascript">
+    function init() {
+      if (getClickBehavior() == 'module') {
+        // Show the body so that the popup is actually visible
+        document.body.style.display = 'block';
+        setIframeUrl();
+
+        // Refresh unread count too, but give the module loading precedence
+        window.setTimeout(goog.partial(startRequest, false), 1000);
+      } else {
+        openReader();
+      }
+    }
+
+    function openReader() {
+      getReaderTab(function(tab) {
+        if (tab) {
+          // Try to reuse an existing Reader tab
+          chrome.tabs.update(tab.id, {selected: true});
+        } else {
+          chrome.tabs.create({url: READER_URL});
+        }
+
+        // Either way, we don't need the popup anymore
+        window.close();
+      });
+    }
+
+    function setIframeUrl() {
+      document.getElementById('module').src =
+          'http://www.google.com/reader/igoogle-module';//?notifier=true';
+    }
+
+    function refresh() {
+      startRequest(false);
+      document.getElementById('module').src = 'about:blank';
+      setIframeUrl();
+    }
+  </script>
+</head>
+<body onload="init();">
+  <div id="header">
+    <span class="link" onclick="openReader()">Important</span>
+    |
+	<span class="link" onclick="openReader()">All</span>
+    |
+    <span class="link" onclick="openReader()">Reader</span>
+    |
+    <span class="link" onclick="refresh()">Refresh</span>
+  </div>
+  <div id="container">
+    <!--
+      Use a placeholder so that Chrome renders the popup immediately, and we
+      can then initialize the iframe onload.
+    -->
+    <div id="placeholder">
+      <div id="loading">Loading...</div>
+    </div>
+
+    <iframe id="module" src="about:blank">
+  </div>
+</body>
+</html>
