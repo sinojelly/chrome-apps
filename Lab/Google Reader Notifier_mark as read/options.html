@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Settings</title>
+    
+    <style type="text/css">
+      /* Primary layout components
+      ------------------------------- */
+    
+      body 
+      {
+        font-size:13px;
+        font-family:Arial;
+        background-color: white;
+        color: black;
+        margin: 10px;
+      }
+    
+      header {
+        overflow: hidden;
+        height:67px;
+        font-size: 21px;
+      }
+      
+      header a
+      {
+        color: #000;
+        text-decoration: none;
+        font-weight: bold;
+      }
+      
+      header a img
+      {
+        vertical-align: middle;
+        margin: 0px 10px 0px 0px;
+      }
+    
+      .titlemenu 
+      {
+        margin-top: 12px;
+        border-top: 1px solid #9CC2EF;
+        background-color: #EBEFF9;
+        padding: 3px;
+        margin-bottom: 6px;
+      }
+ 
+      .titlemenu 
+      {
+        font-weight: bold;
+      }
+ 
+      .titlemenu > a 
+      {
+        font-weight: normal;
+        float: right;
+      }
+      
+      dl
+      {
+        padding: 0px 0px 0px 5px;
+        overflow: auto;
+      }
+      
+      dt
+      {
+        float: left;
+        clear:left;
+        width: 120px;
+        font-weight: bold;
+      }
+      
+      dt:after
+      {
+        content: ":";
+      }
+      
+      dd
+      {
+        float: left;
+        margin: 0px 0px 20px 0px;
+      }
+      
+      dd ul
+      {
+        list-style: none;
+        margin: 0px;
+        padding: 0px;
+      }
+    
+      /* controls
+      ------------------------------- */
+    
+    </style>
+    <script type="text/javascript" src="prefs.js"></script>
+    <script type="text/javascript">
+
+      // Saves options to localStorage.
+      function saveClickbehavior(e) {
+        clickBehaviorNode = e.target;
+
+        if (clickBehaviorNode.checked) {
+          setClickBehavior(clickBehaviorNode.value);
+          if(clickBehaviorNode.value === 'popup') {
+            chrome.browserAction.setPopup({ popup: 'popup.html' } );
+          } else {
+            chrome.browserAction.setPopup({ popup: '' } );
+          }
+        }
+      }
+
+      function saveOpenReaderbehavior(e) {
+        openReaderBehaviorNode = e.target;
+
+        if (openReaderBehaviorNode.checked) {
+          setOpenReaderBehavior(openReaderBehaviorNode.value);
+        }
+      }
+
+      function saveRefreshInterval(e) {
+        refreshIntervalNode = e.target;
+
+        var refreshInterval = refreshIntervalNode.children[refreshIntervalNode.selectedIndex].value;
+        setRefreshInterval(refreshInterval);
+      }
+
+      function saveUseHttps(e) {
+        useHttpsNode = e.target;
+
+        var useHttps = useHttpsNode.checked;
+        setUseHttps(useHttps);
+      }
+
+      function saveEnableAnimation(e) {
+        enableAnimationNode = e.target;
+
+        var enableAnimation = enableAnimationNode.checked;
+        setEnableIconAnimation(enableAnimation);
+      }
+
+      function init() {
+        var optionsForm = document.getElementById('optionsform');
+        // clickbehavior
+        var clickBehavior = getClickBehavior();
+        var clickBehaviorNode = optionsForm['clickbehavior'];
+        for (var i = 0, clickBehaviorOptionNode; clickBehaviorOptionNode = clickBehaviorNode[i]; i++) {
+          clickBehaviorOptionNode.checked = clickBehaviorOptionNode.value == clickBehavior;
+        }
+        
+        for(var i = 0, clickBehaviorOptionNode;
+             clickBehaviorOptionNode = clickBehaviorNode[i];
+             i++) {
+          clickBehaviorOptionNode.addEventListener('change', saveClickbehavior, true);
+        }
+
+        // open reader behavior
+        var openReaderBehavior = getOpenReaderBehavior();
+        var openReaderBehaviorNode = optionsForm['openreaderbehavior'];
+        for (var i = 0, openReaderBehaviorOptionNode; openReaderBehaviorOptionNode = openReaderBehaviorNode[i]; i++) {
+          openReaderBehaviorOptionNode.checked = openReaderBehaviorOptionNode.value == openReaderBehavior;
+        }
+        
+        for(var i = 0, openReaderBehaviorOptionNode;
+             openReaderBehaviorOptionNode = openReaderBehaviorNode[i];
+             i++) {
+          openReaderBehaviorOptionNode.addEventListener('change', saveOpenReaderbehavior, true);
+        }
+
+        // refreshinterval
+        var refreshIterval = getRefreshInterval();
+        var refreshIntervalNode = optionsForm['refreshinterval'];
+        for (var i = 0, refreshValueNode;
+             refreshValueNode = refreshIntervalNode[i];
+             i++) {
+          if (refreshValueNode.value == refreshIterval) {
+            refreshValueNode.selected = 'true';
+            break;
+          }
+        }
+        refreshIntervalNode.addEventListener('change', saveRefreshInterval, true);
+
+        // usehttps
+        var useHttps = getUseHttps();
+        var useHttpsNode = optionsForm['usehttps'];
+        useHttpsNode.checked = useHttps;
+
+        useHttpsNode.addEventListener('change', saveUseHttps, true);
+
+        // enableanimation
+        var enableAnimation = getEnableIconAnimation();
+        var enableAnimationNode = optionsForm['enableanimation'];
+        enableAnimationNode.checked = enableAnimation;
+
+        enableAnimationNode.addEventListener('change', saveEnableAnimation, true);
+      }
+
+      
+    </script>
+  </head>
+
+  <body onload="init()">
+
+    <header>
+      <a target="_blank" href="http://www.google.com/reader/view/">
+        <img src="images/options-section.png" alt="Google Reader"/>Google Reader Notifier
+      </a>
+    </header>
+
+    <div class="titlemenu">
+      Settings <a href="https://www.google.com/reader/settings?mode=nochrome">Google Reader Settings</a> <!--<a href="" tabindex="9">Defaults</a>--><!--(this is for later)-->
+    </div>
+
+    <form id="optionsform">
+    <dl>
+      <dt><label>On click</label></dt>
+      <dd>
+        <ul>
+          <li>
+            <input type="radio" name="clickbehavior" value="popup" id="clickbehavior-popup" tabindex="1">
+            <label for="clickbehavior-popup">Show popup</label>
+          </li>
+          <li>
+            <input type="radio" name="clickbehavior" value="tab" id="clickbehavior-tab" tabindex="2">
+            <label for="clickbehavior-tab">Open Google Reader</label>
+          </li>
+        </ul>
+      </dd>
+
+      <dt><label>Open Links</label></dt>
+      <dd>
+        <ul>
+          <li>
+            <input type="radio" name="openreaderbehavior" value="newtab" id="openreaderbehavior-newtab" tabindex="3">
+            <label for="openreaderbehavior-newtab">In a new tab</label>
+          </li>
+          <li>
+            <input type="radio" name="openreaderbehavior" value="currenttab" id="openreaderbehavior-currenttab" tabindex="4">
+            <label for="openreaderbehavior-currenttab">In the current tab</label>
+          </li>
+          <li>
+            <input type="radio" name="openreaderbehavior" value="newtabpage" id="openreaderbehavior-newtabpage" tabindex="5">
+            <label for="openreaderbehavior-newtabpage">In the current tab only if it is the New Tab Page</label>
+          </li>
+        </ul>
+      </dd>
+
+      <dt><label for="refreshinterval">Refresh Time</label></dt>
+      <dd>
+        <select name="refreshinterval" id="refreshinterval" tabindex="6">
+          <option value="60000">1 minute</option>
+          <option value="300000">5 minutes</option>
+          <option value="600000">10 minutes</option>
+          <option value="900000">15 minutes</option>
+          <option value="1800000">30 minutes</option>
+          <option value="3600000">1 hour</option>
+          <option value="7200000">2 hour</option>
+          <option value="14400000">4 hour</option>
+          <option value="28800000">8 hour</option>
+        </select>
+      </dd>
+
+      <dt><label for="usehttps">Use HTTPS</label></dt>
+      <dd>
+        <input type="checkbox" id="usehttps" tabindex="7" />
+      </dd>
+
+      <dt><label for="enableanimation">Icon Animation</label></dt>
+      <dd>
+        <input type="checkbox" id="enableanimation" tabindex="8" />
+      </dd>
+
+    </dl>
+    </form>
+
+  </body>
+</html>

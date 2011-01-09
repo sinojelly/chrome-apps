@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="prefs.js"></script>
+    <script type="text/javascript" src="reader.js"></script>
+    <script type="text/javascript" src="ReaderNotifier.js"></script>
+    <script type="text/javascript" src="Poller.js"></script>
+    <script type="text/javascript">
+
+      var reader = new Reader();
+      var refresher = new Poller();
+      var thisExtension = new ReaderNotifier();
+
+      /*
+        Kick off polling for the unread count
+      */
+      refresher.startPolling(
+        function () {
+          console.log('refresher: update request...');
+          requestUnreadCountUpdate();
+        }, getRefreshInterval()
+      );
+
+      /*
+        show the unreadcount on the extension icon
+      */
+      function updateUnreadCount(count) {
+        thisExtension.setUnreadCount(count);
+        thisExtension.renderBrowserAction();
+      }
+
+      /*
+        performs a request and updates the unreadcount
+      */
+      function requestUnreadCountUpdate() {
+        thisExtension.startLoadingAnimation();
+
+        reader.getUnreadCount(
+          function (count, isMax) {
+            updateUnreadCount(count);
+            thisExtension.stopLoadingAnimation();
+          },
+          function (opt_isSignedOut) {
+            if(opt_isSignedOut) {
+              thisExtension.setUnreadCount(-1);
+            } else {
+              thisExtension.setUnreadCount(0);
+            }
+            thisExtension.renderBrowserAction();
+            thisExtension.stopLoadingAnimation();
+          }
+        );
+      }
+
+      /*
+        listen for requests from other parts of the extension to update the unread count.
+      */
+      chrome.extension.onRequest.addListener(
+        function(request, sender, sendResponse) {
+          if(request.method === 'updateUnreadCount') {
+            console.log('update request received',request);
+            if(request.arguments) {
+              updateUnreadCount(request.arguments[0]);
+            } else {
+              requestUnreadCountUpdate();
+            }
+          }
+          sendResponse({});
+        }
+      );
+
+
+
+
+      function getReaderTab(callback) {
+        chrome.tabs.getAllInWindow(undefined, function(tabs) {
+          for (var i = 0, tab; tab = tabs[i]; i++) {
+            if (tab.url && reader.matchers.READER_URL.test(tab.url)) {
+              callback(tab);
+              return;
+            }
+          }
+
+          callback(tab);
+        });
+      }
+
+      function getOptionalTab(callback) {
+
+        var openReaderBehavior = getOpenReaderBehavior();
+
+        if (openReaderBehavior === 'newtab') {
+          // open reader in new tab
+          callback(null);
+          return;
+        }
+
+        chrome.tabs.getSelected(undefined, function(tab) {
+          if (
+            openReaderBehavior === 'currenttab' || 
+            openReaderBehavior === 'newtabpage' && tab.url === 'chrome://newtab/'
+          ) {
+            //open reader in the selected tab
+            callback(tab);
+            return;
+          } 
+
+          // open reader in new tab
+          callback(null);
+        });
+      }
+
+      function onOpenReaderMouseClick() {
+        requestUnreadCountUpdate();
+        getReaderTab(function(tab) {
+          if (tab) {
+            // Try to reuse an existing Reader tab
+            chrome.tabs.update(tab.id, {selected: true});
+          } else {
+            getOptionalTab(function(tab) {
+              if (tab) {
+                chrome.tabs.update(tab.id, {selected: true, url: reader.getReaderUrl()});
+              } else {
+                chrome.tabs.create({url: reader.getReaderUrl()});
+              }
+            });
+          }
+        });
+      }
+
+
+      // click behaviour
+      chrome.browserAction.onClicked.addListener(onOpenReaderMouseClick);
+      if(getClickBehavior() === 'popup') {
+        chrome.browserAction.setPopup({ popup: 'popup.html' } );
+      } else {
+        chrome.browserAction.setPopup({ popup: '' } );
+      }
+
+
+
+      // track pageview
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-18936219-1']);
+      _gaq.push(['_trackPageview']);
+
+      // track refresh interval
+      _gaq.push(['_setCustomVar',
+        2,
+        'Refresh Interval',
+        getRefreshInterval(),
+        1
+      ]);
+
+      // track uses HTTPS
+      _gaq.push(['_setCustomVar',
+        3,
+        'Uses HTTPS',
+        getUseHttps(),
+        1
+      ]); 
+
+      // track click behavior
+      _gaq.push(['_setCustomVar',
+        4,
+        'Click Behavior',
+        getClickBehavior(),
+        1
+      ]); 
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = 'https://ssl.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+  </script>
+  </head>
+  <body>
+  </body>
+</html>

@@ -1,0 +1,39 @@
+{
+"update_url":"http://clients2.google.com/service/update2/crx",
+   "background_page": "background.html",
+   "browser_action": {
+      "default_icon": "images/button/signed-out-1.png",
+      "popup": "popup.html"
+   },
+   "description": "Counts the unread items in Google Reader, shows a preview in a popup, mark items as unread, HTTPS capable.",
+   "icons": {
+      "16": "images/icon-16.png",
+      "32": "images/icon-32.png",
+      "64": "images/icon-64.png",
+			"128": "images/icon-128.png"
+   },
+	 "content_scripts": [
+			{
+				"matches": [
+					"http://www.google.com/reader/view*",
+					"https://www.google.com/reader/view*"
+				],
+				"js": ["liveUpdater.js"]
+			},
+			{
+				"matches": [
+					"http://www.google.com/reader/settings*",
+					"https://www.google.com/reader/settings*"
+				],
+				"js": ["fixSettings.js"]
+			}
+		],
+   "name": "Notifier for Google Reader",
+   "options_page": "options.html",
+   "permissions": [ 
+     "tabs", 
+		 "http://www.google.com/reader/",
+		 "https://www.google.com/reader/" 
+   ],
+   "version": "1.2.21"
+}

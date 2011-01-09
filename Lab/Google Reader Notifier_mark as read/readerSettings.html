@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Settings</title>
+    
+    <style type="text/css">
+      /* Primary layout components
+      ------------------------------- */
+    
+      body 
+      {
+        font-size:13px;
+        font-family:Arial;
+        background-color: white;
+        color: black;
+        margin: 10px;
+      }
+    
+      header {
+        overflow: hidden;
+        height:67px;
+        font-size: 21px;
+      }
+      
+      header a
+      {
+        color: #000;
+        text-decoration: none;
+        font-weight: bold;
+      }
+      
+      header a img
+      {
+        vertical-align: middle;
+        margin: 0px 10px 0px 0px;
+      }
+    
+      .titlemenu 
+      {
+        margin-top: 12px;
+        border-top: 1px solid #9CC2EF;
+        background-color: #EBEFF9;
+        padding: 3px;
+        margin-bottom: 6px;
+      }
+ 
+      .titlemenu 
+      {
+        font-weight: bold;
+      }
+ 
+      .titlemenu > a 
+      {
+        font-weight: normal;
+        float: right;
+      }
+    
+      /* controls
+      ------------------------------- */
+    
+    </style>
+    <script type="text/javascript">
+      function init() {
+
+      }
+    </script>
+  </head>
+
+  <body onload="init()">
+
+    <header>
+      <a target="_blank" href="http://www.google.com/reader/view/">
+        <img src="images/options-section.png" alt="Google Reader"/>Google Reader Notifier
+      </a>
+    </header>
+
+    <div class="titlemenu">
+      Settings <a href="options.html">Reader Notifier Settings</a>
+    </div>
+
+    <iframe id="settings-frame" name="settings-frame" src="https://www.google.com/reader/settings?mode=nochrome"  frameborder="0" scrolling="no" style="height: 658px; width:1000px; " class="loaded"></iframe>
+
+  </body>
+</html>

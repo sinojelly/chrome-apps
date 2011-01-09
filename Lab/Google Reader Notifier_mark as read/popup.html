@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="Stylesheet" type="text/css" href="popup.css"/>
+
+    <script type="text/javascript" src="prefs.js"></script>
+    <script type="text/javascript" src="reader.js"></script>
+    <script type="text/javascript">
+    
+      var reader = new Reader();
+
+      var loadingEl;
+      var itemsListEl;
+      var newerItemsBtn;
+      var olderItemsBtn;
+      var refreshBtn;
+      var messageDisplay;
+      var openreaderBtn;
+
+      var items;
+
+      var mouseButtons = {
+        left: 0,
+        middle: 1
+      };
+
+      function getReaderTab(callback) {
+        chrome.tabs.getAllInWindow(undefined, function(tabs) {
+          for (var i = 0, tab; tab = tabs[i]; i++) {
+            if (tab.url && reader.matchers.READER_URL.test(tab.url)) {
+              callback(tab);
+              return;
+            }
+          }
+
+          callback(null);
+        });
+      }
+
+      function requestUnreadCountUpdate(onReturn) {
+        console.log('update request');
+        chrome.extension.sendRequest(
+          {
+            method: "updateUnreadCount"
+          }, onReturn
+        );
+      }
+
+      /*
+        Refreshes the current view
+      */
+      function refreshView() {
+        
+        if(reader.hasNewerItems()) {
+          newerItemsBtn.className = '';
+        } else {
+          newerItemsBtn.className = 'hidden';
+        }
+
+        if(reader.hasOlderItems()) {
+          olderItemsBtn.className = '';
+        } else {
+          olderItemsBtn.className = 'hidden';
+        }
+
+        items = reader.getCurrentPage();
+        buildItemsList()
+
+        if(items.length === 0){
+          itemsListEl.innerHTML = '';
+          showMessage('Your reading list is empty');
+        } else {
+          hideMessage();
+        }
+           
+        displayUpdateTime();
+
+        stopLoadingAnimation();
+      }
+
+      function showMessage(msg) {
+        messageDisplay.innerHTML = msg;
+        messageDisplay.style.display = 'block';
+      }
+
+      function hideMessage() {
+        messageDisplay.style.display = 'none';
+      }
+
+      function addLeadingZero(timeValue) {
+        return (timeValue < 10 ? '0' + timeValue : '' + timeValue);
+      }
+
+      function displayUpdateTime() {
+        var updateTime = reader.getLastUpdateTimestamp(); 
+        refreshBtn.title = 'Updated at ' + 
+                            addLeadingZero(updateTime.getHours()) + 
+                            ':' + 
+                            addLeadingZero(updateTime.getMinutes());
+      }
+
+      /*
+        Make log when error occurs
+      */
+      function handleError(opt_signedOut) {
+        requestUnreadCountUpdate(function () {});
+        showMessage(
+          'An error has occured, are you ' + 
+          '<a onclick="onOpenReaderMouseClick()">signed in</a>' + 
+          ' to Google Reader?'
+        );
+        stopLoadingAnimation();
+      }
+
+      function markAsRead(id) {
+        function handleMarkAsReadSuccess() {
+          // request count update at extension bg page
+          requestUnreadCountUpdate(function () {});
+          // don't wait for response, just refresh the view 
+          refreshView();       
+        }
+        reader.markAsRead(id, handleMarkAsReadSuccess, handleError);
+      }
+
+      function starItem(id) {
+        reader.starItem(id, refreshView, handleError);
+      }
+
+      function unstarItem(id) {
+        reader.unstarItem(id, refreshView, handleError);
+      }
+
+      function openOptions() {
+        chrome.tabs.create({url: 'options.html'}); 
+      }
+
+      function markAllAsRead() {
+        function handleMarkAsReadSuccess() {
+          // request count update at extension bg page
+          requestUnreadCountUpdate(function () {});
+          // don't wait for response, just refresh the view 
+          refreshView();       
+        }
+        reader.markAllAsRead(handleMarkAsReadSuccess, handleError);
+      }
+
+	  function delHtmlTag(str) 
+      { 
+		return str.replace(/<[^>]+>/g,"");//去掉所有的html标记 
+	  }
+	  
+	  function getDescription(item)
+	  {
+	      var description = "";
+	      if (item.content)
+		  {
+		      description = delHtmlTag(item.content.content); //.substring(0, 50);
+		  }
+		  else if (item.summary)
+		  {
+		      description = delHtmlTag(item.summary.content); //.substring(0, 50);
+		  }
+		  return description;
+	  }
+	  
+      // renders one item in the list
+      function renderItem(item) {
+        var itemUrl = item.alternate[0].href;
+		var description = getDescription(item);		
+        return '' +
+          '<li>' + 
+            (reader.isStarred(item) ?
+              '<span class="rating starred" onclick="unstarItem(\'' + item.id + '\')"></span>' 
+            :
+              '<span class="rating" onclick="starItem(\'' + item.id + '\')"></span>'
+            ) + 
+            '<p>' + 
+              '<a class="target" itemid="'+ item.id +'" itemurl="' + itemUrl + '" title="' + description + /*item.title" || "description + + delHtmlTag(item.content.content) +*/ '">' + 
+                item.title + 
+              '</a>' + 
+            '</p>' //+ 
+//            '<p>from ' + 
+//              '<a class="source" sourceUrl="'+ item.origin.htmlUrl +'" title="' + item.origin.title + '">' + item.origin.title + '</a>' + 
+//            '</p>' + 
+//            '<ul class="options">' + 
+//              '<li><a onclick="markAsRead(\'' + item.id + '\')">Mark as Read</a></li>' +
+//            '</ul>' +
+          '</li>';
+      }
+
+      // build complete itemlist
+      function buildItemsList() {
+        var html = '';
+        for(var i = 0; i < items.length; i++) {
+          html += renderItem(items[i]);
+        }
+        itemsListEl.innerHTML = html;
+        hookUpListEvents();
+      }
+
+      // opens a link, optionally in a background tab
+      function openLink(url, opt_background) {
+        function handler(tab) {
+          if(tab) {
+            var newTab = {url: url, selected: true};
+            if(opt_background) {
+              newTab.selected = false;
+            }
+
+            chrome.tabs.update(tab.id, newTab);
+          } else {
+            var tab = {url: url};
+
+            if(opt_background) {
+              tab.selected = false;
+            }
+
+            chrome.tabs.create(tab);
+          }
+        }
+
+        getOptionalTab(handler);
+      }
+
+      function onTargetMouseUp(event) {
+        // open items only after the item is marked as read otherwise the request is destroyed
+        function handleMarkAsReadSuccess() {
+          // request count update at extension bg page
+          requestUnreadCountUpdate(function() {});
+          
+          if(event.button === mouseButtons.middle || event.button === mouseButtons.left && event.ctrlKey) {
+            // open item in background
+            openLink(itemUrl, true);
+            refreshView();
+          } else if(event.button === mouseButtons.left) {
+            // open item in foreground
+            openLink(itemUrl);
+          }
+        }
+
+        var itemId = event.target.getAttribute('itemid');
+        var itemUrl = event.target.getAttribute('itemurl');
+        
+        if(event.button === mouseButtons.left || event.button === mouseButtons.middle) {
+          reader.markAsRead(itemId, handleMarkAsReadSuccess, handleError);
+        }        
+      }
+
+      function onSourceMouseUp(event) {
+        var sourceUrl = event.target.getAttribute('sourceurl');
+
+         if(event.button === mouseButtons.middle || event.button === mouseButtons.left && event.ctrlKey) {
+          // open in background
+          openLink(sourceUrl, true);
+        } else if(event.button === mouseButtons.left) {
+          // open in foreground
+          openLink(sourceUrl);
+        }
+      }
+
+      // hook up events for interaction with items
+      function hookUpListEvents() {
+        var targets = document.getElementsByClassName('target');
+        for(var i = 0; i < targets.length; i++) {
+          targets[i].addEventListener('mouseup', onTargetMouseUp, true);
+        }
+
+        var sources = document.getElementsByClassName('source');
+        for(var i = 0; i < sources.length; i++) {
+          sources[i].addEventListener('mouseup', onSourceMouseUp, true);
+        }
+      }
+
+      function getOptionalTab(callback) {
+
+        var openReaderBehavior = getOpenReaderBehavior();
+
+        if (openReaderBehavior === 'newtab') {
+          // open reader in new tab
+          callback(null);
+          return;
+        }
+
+        chrome.tabs.getSelected(undefined, function(tab) {
+          if (
+            openReaderBehavior === 'currenttab' || 
+            openReaderBehavior === 'newtabpage' && tab.url === 'chrome://newtab/'
+          ) {
+            //open reader in the selected tab
+            callback(tab);
+            return;
+          } 
+
+          // open reader in new tab
+          callback(null);
+        });
+      }
+
+      function onOpenReaderMouseClick() {
+        requestUnreadCountUpdate(function () {
+        
+          getReaderTab(function(tab) {
+            if (tab) {
+              // Try to reuse an existing Reader tab
+              chrome.tabs.update(tab.id, {selected: true});
+            } else {
+              getOptionalTab(function(tab) {
+                if (tab) {
+                  chrome.tabs.update(tab.id, {selected: true, url: reader.getReaderUrl()});
+                } else {
+                  chrome.tabs.create({url: reader.getReaderUrl()});
+                }
+              });
+            }
+          });
+        });
+      }
+
+
+
+      // hook up events for interaction with popup
+      function hookUpPopupEvents() {
+        openReaderBtn.addEventListener('click', onOpenReaderMouseClick, true);
+      }
+
+      function init() {
+        loadingEl = document.getElementById('loading');
+        itemsListEl = document.getElementById('itemslist');
+        newerItemsBtn = document.getElementById('neweritems');
+        olderItemsBtn = document.getElementById('olderitems');
+        messageDisplay = document.getElementById('message');
+        refreshBtn = document.getElementById('refresh');
+        openReaderBtn = document.getElementById('openreader');
+
+        hookUpPopupEvents();
+
+        setTimeout(refresh, 50);
+      }
+
+
+      function startLoadingAnimation() {
+        document.body.className = 'loading';
+      }
+
+      function stopLoadingAnimation() {
+        document.body.className = '';
+      }
+
+      function refresh() {
+        startLoadingAnimation();
+        
+        reader.refresh(
+          function () {
+            refreshView();
+            requestUnreadCountUpdate(function() {});
+          }, 
+          handleError    
+        );  
+      }
+
+      function moveToNewerPage() {
+        startLoadingAnimation();
+        reader.moveToNewerPage(refreshView, handleError);
+      }
+
+      function moveToOlderPage() {
+        startLoadingAnimation();
+        reader.moveToOlderPage(refreshView, handleError);
+      }
+
+
+
+
+
+
+
+
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-18936219-1']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = 'https://ssl.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+  </head>
+
+  <body onload="init();">
+    <div>
+      <section>
+        <ul id="commands">
+            <li id="openreader" onclick="openReader()"><a>Google Reader</a></li>
+            <li onclick="markAllAsRead()"><a>Mark all as read</a></li>
+        </ul>
+        <ul id="tools">
+            <li><button id="options" onclick="openOptions()" title="Settings"></button></li>
+            <li><button id="refresh" onclick="refresh()"></button></li>
+        </ul>
+      </section>
+
+      <section>
+        <div id="neweritems" class="hidden"><button title="Newer" onclick="moveToNewerPage()"></button></div>
+        <div id="message"></div>
+        <ul id="itemslist">
+        
+        </ul>
+        <div id="olderitems" class="hidden"><button title="Older" onclick="moveToOlderPage()"></button></div>
+      </section>
+    </div>
+  </body>
+</html>

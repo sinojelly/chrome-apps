@@ -1,0 +1,290 @@
+/* Links
+--------------------------------- */
+    
+a
+{
+  color: #6080d0;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+a:hover
+{
+  color: #6080d0;
+  cursor: pointer;
+  text-decoration: underline;
+}  
+
+.hidden
+{
+  visibility: hidden;
+}
+
+/* buttons
+--------------------------------- */
+    
+button
+{
+    padding:0px;
+    margin: 0px;
+    border: 0px;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+
+#options:hover,
+#refresh:hover,
+#olderitems button:hover,
+#neweritems button:hover
+{
+    background-position: 0px -16px;
+}
+
+#options:active,
+#refresh:active,
+#olderitems button:active,
+#neweritems button:active
+{
+    background-position: 0px -32px;
+}
+
+/* body
+--------------------------------- */
+    
+html
+{
+  width: auto;
+  height: auto;
+}
+
+body {
+  padding: 0px;
+  margin: 0px;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  width: 320px;
+}
+
+body.loading,
+body.loading button,
+body.loading a
+{
+    cursor: progress;
+}
+    
+/* Sections
+--------------------------------- */
+    
+section
+{
+  padding: 5px 5px;
+  /*border-bottom: 1px solid #EEE;*/
+  overflow:auto;
+}
+    
+section:last-child
+{
+  /*border: none;*/
+}
+    
+h1
+{
+  font-size: 14px;
+  font-weight: bold;
+  margin: 0px;
+}
+    
+/* Commands menu
+--------------------------------- */
+
+#commands 
+{
+  float: left;
+  margin: 0;
+  list-style:none;
+  padding: 0px;
+}
+    
+#commands li
+{
+  display: inline;
+}
+    
+#commands li:after
+{
+  content:" | ";
+}
+    
+#commands li:last-child:after
+{
+  content:"";
+}
+
+/* Tools menu
+--------------------------------- */
+
+#tools 
+{
+  float:right;
+  margin: 0;
+  list-style:none;
+  padding: 0px;
+}
+    
+#tools li
+{
+  display: inline;
+}
+
+#options
+{
+  background: url('images/wrench.png');
+}
+
+#refresh
+{
+  background: url('images/refresh.png');
+}
+
+/* Itemlist: navigation
+--------------------------------- */
+
+#olderitems, #neweritems
+{
+  text-align: center;
+}
+
+#neweritems button
+{
+    background: url('images/arrow_up.png');
+}
+    
+#olderitems button
+{
+    background: url('images/arrow_down.png');
+}
+    
+/* Itemslist
+--------------------------------- */
+ 
+#itemslist
+{
+  padding: 0px;
+  margin: 0px;
+}
+   
+#itemslist > li
+{
+  list-style: none;
+  margin:0px 0px 5px 0px;
+  padding: 0px;
+}
+
+#itemslist p
+{
+  color: #999;
+  font-size: 11px;
+  margin: 0px 0px 0px 20px;
+  overflow: hidden;
+  white-space:nowrap;
+  text-overflow: ellipsis;
+}
+
+#itemslist a
+{
+  font-size: 13px;
+}
+
+#itemslist .target
+{
+  color: #00C;
+}
+
+#itemslist .source
+{
+  color: #080;
+}
+
+#itemslist li
+{
+  position: relative;
+}
+
+#itemslist .rating
+{
+  background: url('images/star.png') no-repeat 0px 0px;
+  top: 2px;
+  left: 0px;
+  width: 15px;
+  height: 15px;
+  position: absolute;
+  cursor: pointer;
+}
+
+#itemslist .rating:hover
+{
+    background-position: 0px -15px
+}
+
+#itemslist .rating.starred
+{
+    background-position: 0px -30px
+}
+
+/* Listitem options
+--------------------------------- */
+
+#itemslist li .options
+{
+  font-size: 11px;
+  border-bottom: 1px solid #EEE;
+  list-style: none;
+  padding: 0px;
+  opacity: 0;
+  -webkit-transition: opacity 300ms ease-in;
+}
+
+#itemslist li:last-child .options
+{
+  border-bottom: none;
+}
+
+#itemslist li:hover .options
+{
+  opacity: 1;
+}
+
+#itemslist .options li
+{
+  display: inline;
+}
+
+#itemslist .options li:after
+{
+  content: " | ";
+}
+
+#itemslist .options li:last-child:after
+{
+  content: "";
+}
+
+#itemslist .options li
+{
+  color: #000;
+}
+
+#itemslist .options a
+{
+  font-size: inherit;
+}
+
+/* message
+--------------------------------- */
+
+#message
+{
+  text-align: center;
+}
