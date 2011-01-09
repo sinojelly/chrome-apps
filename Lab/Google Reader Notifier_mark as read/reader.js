@@ -23,6 +23,7 @@
   this.matchers = {
     READING_LIST: /user\/[\d]+\/state\/com\.google\/reading-list/,
 	IMPORTANT_LIST: /user\/[\d]+\/label\/Important/,
+	FEED_LIST: /feed/,
     STARRED_TAG: /user\/[-\d]+\/state\/com\.google\/starred/,
     READER_URL: /https?\:\/\/www.google.com\/reader\/view\//
   }
@@ -32,7 +33,7 @@
   
   this.ITEMS_NUM_IN_PAGE_ = 15;
   
-  this.allList = true;
+  this.allList = false;
 
   this.items_;
   this.continuation_ = null;
@@ -264,16 +265,28 @@ Reader.prototype.getUnreadCount = function (onSuccess, onError) {
 
   this.makeJsonRequest_(url,
     function(response) {
-      var count = 0;
+      var totalCount = 0;
+	  var importantCount = 0;
       var isMax = false;
-      for (var i = 0, stream; stream = response.unreadcounts[i]; i++) {
-        //if (me.matchers.READING_LIST.test(stream.id)) {
-		if (me.matchers.IMPORTANT_LIST.test(stream.id)) {
-          count = stream.count;
-          isMax = stream.count >= response.max
+      for (var i = 0, stream; stream = response.unreadcounts[i]; i++) {	  
+		if (me.matchers.FEED_LIST.test(stream.id)) {
+          totalCount += stream.count;          
+		  if (stream.count >= response.max)
+		  {
+		      isMax = true;
+		  }
+		  continue;
         }
-      }
-      onSuccess(count, isMax);
+		
+		if (me.matchers.IMPORTANT_LIST.test(stream.id)) {
+          importantCount = stream.count;          
+        }		
+      }	  
+	  if (importantCount <= 0)
+	  {
+	      this.allList = true;
+	  }
+      onSuccess(importantCount, totalCount, isMax);
     },
     onError
   );

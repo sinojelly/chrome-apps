@@ -24,8 +24,8 @@
       /*
         show the unreadcount on the extension icon
       */
-      function updateUnreadCount(count) {
-        thisExtension.setUnreadCount(count);
+      function updateUnreadCount(importantCount, totalCount, isMax) {
+        thisExtension.setUnreadCount(importantCount, totalCount, isMax);
         thisExtension.renderBrowserAction();
       }
 
@@ -36,8 +36,8 @@
         thisExtension.startLoadingAnimation();
 
         reader.getUnreadCount(
-          function (count, isMax) {
-            updateUnreadCount(count);
+          function (importantCount, totalCount, isMax) {
+            updateUnreadCount(importantCount, totalCount, isMax);
             thisExtension.stopLoadingAnimation();
           },
           function (opt_isSignedOut) {
@@ -59,8 +59,8 @@
         function(request, sender, sendResponse) {
           if(request.method === 'updateUnreadCount') {
             console.log('update request received',request);
-            if(request.arguments) {
-              updateUnreadCount(request.arguments[0]);
+            if(request.arguments) { 
+              updateUnreadCount(request.arguments[0], request.arguments[1], request.arguments[2]);
             } else {
               requestUnreadCountUpdate();
             }

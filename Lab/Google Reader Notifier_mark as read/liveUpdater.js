@@ -18,6 +18,7 @@ if (newItemCountLabel) {
           method: "updateUnreadCount",
           arguments: [
             count,
+			0,
             match[2] === '+'
           ]
         }, function(response) {}

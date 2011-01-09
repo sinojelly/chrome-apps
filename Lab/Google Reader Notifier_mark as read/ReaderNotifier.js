@@ -34,6 +34,8 @@ function ReaderNotifier() {
 
   this.currentIconSource = this.iconSources.signedOut;
   this.unreadCount = 0;
+  this.importantCount = 0;
+  this.isMax = false;
   this.animation;
   this.frame = 0;
   this.stopAnimation = false;
@@ -49,14 +51,39 @@ console.log('render', this);
     chrome.browserAction.setIcon({path: this.currentIconSource[0]});
   }
   
-  chrome.browserAction.setBadgeText({text: (this.unreadCount <= 0 ? '' : String(this.unreadCount)) });
+  var ALL_BADGE_COLOR_ = {color: [190, 190, 190, 230]};
+  var IMPORTANT_BADGE_COLOR_ = {color: [208, 0, 24, 255]};
+  
+  var allCountText = this.unreadCount + '';
+  if (this.isMax)
+  {
+    allCountText += '+';
+  }
+  
+  var countText = '';
+  if (this.importantCount > 0)
+  {
+    countText = this.importantCount + '';
+    chrome.browserAction.setBadgeBackgroundColor(IMPORTANT_BADGE_COLOR_);
+  }
+  else if (this.unreadCount > 0)
+  {
+    countText = allCountText;
+    chrome.browserAction.setBadgeBackgroundColor(ALL_BADGE_COLOR_);
+  }
+  
+  chrome.browserAction.setBadgeText({text: countText});   
+  chrome.browserAction.setTitle({title:this.importantCount + '/' + allCountText});
+
 }
 
-ReaderNotifier.prototype.setUnreadCount = function (count) {
-  this.unreadCount = count;
-  if(count < 0) {
+ReaderNotifier.prototype.setUnreadCount = function (importantCount, totalCount, isMax) {
+  this.unreadCount = totalCount;
+  this.importantCount = importantCount;
+  this.isMax = isMax;
+  if(totalCount < 0) {
     this.currentIconSource = this.iconSources.signedOut;
-  } else if(count > 0) {
+  } else if(totalCount > 0) {
     this.currentIconSource = this.iconSources.unreadItems;
   } else {
     this.currentIconSource = this.iconSources.signedIn;
