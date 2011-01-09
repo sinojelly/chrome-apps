@@ -51,7 +51,7 @@ console.log('render', this);
     chrome.browserAction.setIcon({path: this.currentIconSource[0]});
   }
   
-  var ALL_BADGE_COLOR_ = {color: [190, 190, 190, 230]};
+  var ALL_BADGE_COLOR_ = {color: [57,239,244, 240]}; //[190, 190, 190, 230]};
   var IMPORTANT_BADGE_COLOR_ = {color: [208, 0, 24, 255]};
   
   var allCountText = this.unreadCount + '';

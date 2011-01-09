@@ -135,6 +135,11 @@
       }
 
       function markAllAsRead() {
+	    if (!confirm("Are you sure to mark all as read?"))
+		{
+		  return;
+		}
+
         function handleMarkAsReadSuccess() {
           // request count update at extension bg page
           requestUnreadCountUpdate(function () {});
@@ -236,14 +241,14 @@
           // request count update at extension bg page
           requestUnreadCountUpdate(function() {});
           
-          if(event.button === mouseButtons.middle || event.button === mouseButtons.left && event.ctrlKey) {
+          //if(event.button === mouseButtons.middle || event.button === mouseButtons.left && event.ctrlKey) {
             // open item in background
             openLink(itemUrl, true);
             refreshView();
-          } else if(event.button === mouseButtons.left) {
+          //} else if(event.button === mouseButtons.left) {
             // open item in foreground
-            openLink(itemUrl);
-          }
+          //  openLink(itemUrl);
+          //}
         }
 
         var itemId = event.target.getAttribute('itemid');
@@ -343,10 +348,12 @@
         hookUpPopupEvents();
 		
 		reader.allList = false;
+		onCategoryChange(false);
 		
 		if (reader.importantCount <= 0)
 		{
 		  reader.allList = true;
+		  onCategoryChange(true);
 		}
 
         setTimeout(refresh, 50);
@@ -385,17 +392,29 @@
       }
 
       function setReadListAsImportant() {
+	    onCategoryChange(false);
 	    reader.allList = false;
 		refresh();
 	  }
 
       function setReadListAsAll() {
+	    onCategoryChange(true);
 	    reader.allList = true;
 		refresh();
 	  }
-
-
-
+	  
+	  function onCategoryChange(isAllList)
+	  {
+	    if (isAllList)
+		{
+		    document.getElementById("important").style.font="13px Arial, sans-serif";
+			document.getElementById("all").style.font="bold 13px Arial, sans-serif";
+		    return;
+		}
+		
+	    document.getElementById("important").style.font="bold 13px Arial, sans-serif";
+		document.getElementById("all").style.font="13px Arial, sans-serif";
+	  }
 
 
       var _gaq = _gaq || [];
@@ -411,7 +430,7 @@
     </script>
   </head>
 
-  <body onload="init();">
+  <body onload="init();" onunload="chrome.extension.getBackgroundPage().checkList();">
     <div>
       <section>
         <ul id="commands">
