@@ -199,6 +199,12 @@
         itemsListEl.innerHTML = html;
         hookUpListEvents();
       }
+	  
+	  function markPageItemsAsRead() {
+        for(var i = 0; i < items.length; i++) {
+          markAsRead(items[i].id);
+        }	  
+	  }
 
       // opens a link, optionally in a background tab
       function openLink(url, opt_background) {
@@ -337,6 +343,11 @@
         hookUpPopupEvents();
 		
 		reader.allList = false;
+		
+		if (reader.importantCount <= 0)
+		{
+		  reader.allList = true;
+		}
 
         setTimeout(refresh, 50);
       }
@@ -368,8 +379,9 @@
       }
 
       function moveToOlderPage() {
-        startLoadingAnimation();
-        reader.moveToOlderPage(refreshView, handleError);
+	    markPageItemsAsRead();
+        //startLoadingAnimation();
+        //reader.moveToOlderPage(refreshView, handleError);
       }
 
       function setReadListAsImportant() {

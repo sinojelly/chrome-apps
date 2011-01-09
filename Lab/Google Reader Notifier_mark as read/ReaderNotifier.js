@@ -79,7 +79,10 @@ console.log('render', this);
 
 ReaderNotifier.prototype.setUnreadCount = function (importantCount, totalCount, isMax) {
   this.unreadCount = totalCount;
-  this.importantCount = importantCount;
+  if (importantCount != '-111') // sinojelly: no important count
+  {
+    this.importantCount = importantCount;
+  }
   this.isMax = isMax;
   if(totalCount < 0) {
     this.currentIconSource = this.iconSources.signedOut;

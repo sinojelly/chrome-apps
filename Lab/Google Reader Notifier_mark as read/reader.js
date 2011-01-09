@@ -33,6 +33,7 @@
   
   this.ITEMS_NUM_IN_PAGE_ = 15;
   
+  this.importantCount = 0;
   this.allList = false;
 
   this.items_;
@@ -286,6 +287,7 @@ Reader.prototype.getUnreadCount = function (onSuccess, onError) {
 	  {
 	      this.allList = true;
 	  }
+	  this.importantCount = importantCount;
       onSuccess(importantCount, totalCount, isMax);
     },
     onError
@@ -364,7 +366,8 @@ Reader.prototype.hasNewerItems = function () {
   Determines wether there are more items after the current page.
 */
 Reader.prototype.hasOlderItems = function () {
-  return this.continuation_ !== undefined || this.items_.length > this.pageFirstItem_ + getMaxItemCount();
+  return this.items_.length > 0;
+  //return this.continuation_ !== undefined || this.items_.length > this.pageFirstItem_ + getMaxItemCount();
 }
 
 /*
