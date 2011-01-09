@@ -7,6 +7,8 @@
     UNREAD_COUNT: 'unread-count',
 
     READING_LIST: 'stream/contents/user/-/state/com.google/reading-list',
+	
+	IMPORTANT_LIST: 'stream/contents/user/-/label/Important',
     
     EDIT_TAG: 'edit-tag',
 
@@ -20,6 +22,7 @@
 
   this.matchers = {
     READING_LIST: /user\/[\d]+\/state\/com\.google\/reading-list/,
+	IMPORTANT_LIST: /user\/[\d]+\/label\/Important/,
     STARRED_TAG: /user\/[-\d]+\/state\/com\.google\/starred/,
     READER_URL: /https?\:\/\/www.google.com\/reader\/view\//
   }
@@ -28,6 +31,8 @@
   this.REQUEST_TIMEOUT_MS_ = 30 * 1000; // 30 seconds
   
   this.ITEMS_NUM_IN_PAGE_ = 15;
+  
+  this.allList = true;
 
   this.items_;
   this.continuation_ = null;
@@ -262,7 +267,8 @@ Reader.prototype.getUnreadCount = function (onSuccess, onError) {
       var count = 0;
       var isMax = false;
       for (var i = 0, stream; stream = response.unreadcounts[i]; i++) {
-        if (me.matchers.READING_LIST.test(stream.id)) {
+        //if (me.matchers.READING_LIST.test(stream.id)) {
+		if (me.matchers.IMPORTANT_LIST.test(stream.id)) {
           count = stream.count;
           isMax = stream.count >= response.max
         }
@@ -292,7 +298,15 @@ Reader.prototype.getUnreadItems_ = function (onSuccess, onError, opt_continuatio
     queryParams.c = opt_continuation;
   }
 
-  var url = this.getApiUrl(this.apis.READING_LIST) + '?' + this.buildQueryStringParameters_(queryParams);
+  var url;
+  if (this.allList)
+  {
+    url = this.getApiUrl(this.apis.READING_LIST) + '?' + this.buildQueryStringParameters_(queryParams);
+  }
+  else
+  {
+    url = this.getApiUrl(this.apis.IMPORTANT_LIST) + '?' + this.buildQueryStringParameters_(queryParams);
+  }
 
   function handleSuccess(response) {
     me.continuation_ = response.continuation;

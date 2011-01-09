@@ -370,9 +370,15 @@
         reader.moveToOlderPage(refreshView, handleError);
       }
 
+      function setReadListAsImportant() {
+	    reader.allList = false;
+		refresh();
+	  }
 
-
-
+      function setReadListAsAll() {
+	    reader.allList = true;
+		refresh();
+	  }
 
 
 
@@ -395,7 +401,9 @@
     <div>
       <section>
         <ul id="commands">
-            <li id="openreader" onclick="openReader()"><a>Google Reader</a></li>
+		    <li id="important" onclick="setReadListAsImportant()"><a>Important</a></li>
+			<li id="all" onclick="setReadListAsAll()"><a>All</a></li>
+            <li id="openreader" onclick="openReader()"><a>Reader</a></li>
             <li onclick="markAllAsRead()"><a>Mark all as read</a></li>
         </ul>
         <ul id="tools">
