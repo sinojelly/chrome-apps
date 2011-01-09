@@ -11,7 +11,7 @@
 
       var loadingEl;
       var itemsListEl;
-      var newerItemsBtn;
+      //var newerItemsBtn;
       var olderItemsBtn;
       var refreshBtn;
       var messageDisplay;
@@ -51,11 +51,11 @@
       */
       function refreshView() {
         
-        if(reader.hasNewerItems()) {
+        /*if(reader.hasNewerItems()) {
           newerItemsBtn.className = '';
         } else {
           newerItemsBtn.className = 'hidden';
-        }
+        }*/
 
         if(reader.hasOlderItems()) {
           olderItemsBtn.className = '';
@@ -328,7 +328,7 @@
       function init() {
         loadingEl = document.getElementById('loading');
         itemsListEl = document.getElementById('itemslist');
-        newerItemsBtn = document.getElementById('neweritems');
+        //newerItemsBtn = document.getElementById('neweritems');
         olderItemsBtn = document.getElementById('olderitems');
         messageDisplay = document.getElementById('message');
         refreshBtn = document.getElementById('refresh');
@@ -405,7 +405,7 @@
       </section>
 
       <section>
-        <div id="neweritems" class="hidden"><button title="Newer" onclick="moveToNewerPage()"></button></div>
+        <!--<div id="neweritems" class="hidden"><button title="Newer" onclick="moveToNewerPage()"></button></div>-->
         <div id="message"></div>
         <ul id="itemslist">
         
