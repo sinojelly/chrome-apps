@@ -26,6 +26,8 @@
 
   // Time in milliseconds that we wait for a  request to complete.
   this.REQUEST_TIMEOUT_MS_ = 30 * 1000; // 30 seconds
+  
+  this.ITEMS_NUM_IN_PAGE_ = 15;
 
   this.items_;
   this.continuation_ = null;
@@ -310,7 +312,7 @@ Reader.prototype.getUnreadItems_ = function (onSuccess, onError, opt_continuatio
 Reader.prototype.ensureItems_ = function(onSuccess, onError) {
   var me = this;
 
-  if(this.pageFirstItem_ + 5 > this.items_.length && this.continuation_) {
+  if(this.pageFirstItem_ + this.ITEMS_NUM_IN_PAGE_ > this.items_.length && this.continuation_) {
     // fetch new items for the list    
 
     var handleSucces = function (newItems) { 
@@ -345,7 +347,7 @@ Reader.prototype.hasOlderItems = function () {
 */
 Reader.prototype.moveToNewerPage = function (onSuccess, onError) {
   if(this.hasNewerItems()) {
-    this.pageFirstItem_ = Math.max(this.pageFirstItem_ - 5, 0);
+    this.pageFirstItem_ = Math.max(this.pageFirstItem_ - this.ITEMS_NUM_IN_PAGE_, 0);
     onSuccess();
   } else {
     onError();
@@ -376,7 +378,7 @@ Reader.prototype.moveToOlderPage = function (onSuccess, onError) {
   if(this.hasOlderItems() && !this.requestBusy_.moveToOlderPage) {
     this.requestBusy_.moveToOlderPage = true;
 
-    this.pageFirstItem_ += 5;
+    this.pageFirstItem_ += this.ITEMS_NUM_IN_PAGE_;
     this.ensureItems_(handleSuccess, handleError);
   } else {
     handleError();
@@ -387,7 +389,7 @@ Reader.prototype.moveToOlderPage = function (onSuccess, onError) {
   Gets the items of the current page.
 */
 Reader.prototype.getCurrentPage = function () {
-  var page = this.items_.slice(this.pageFirstItem_, this.pageFirstItem_ + 5);
+  var page = this.items_.slice(this.pageFirstItem_, this.pageFirstItem_ + this.ITEMS_NUM_IN_PAGE_);
   return page;
 }
 

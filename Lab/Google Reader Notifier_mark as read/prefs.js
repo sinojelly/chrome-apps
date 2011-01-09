@@ -28,7 +28,7 @@ function setRefreshInterval(value) {
 }
 
 function getMaxItemCount() {
-  return parseInt(localStorage[MAX_ITEMCOUNT_KEY] || '5', 10);
+  return parseInt(localStorage[MAX_ITEMCOUNT_KEY] || '15', 10);
 }
 
 function setMaxItemCount(value) {

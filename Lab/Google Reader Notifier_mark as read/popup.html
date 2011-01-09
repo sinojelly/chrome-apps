@@ -166,7 +166,8 @@
       // renders one item in the list
       function renderItem(item) {
         var itemUrl = item.alternate[0].href;
-		var description = getDescription(item);		
+		var description = getDescription(item);	
+        var imgSrc = itemUrl.substring(0, itemUrl.indexOf('/',9)) + "/favicon.ico"; // ignore https://		
         return '' +
           '<li>' + 
             (reader.isStarred(item) ?
@@ -174,7 +175,8 @@
             :
               '<span class="rating" onclick="starItem(\'' + item.id + '\')"></span>'
             ) + 
-            '<p>' + 
+			'<p>' + '<img src="'+imgSrc+'" width="15" height="15" title="' + item.origin.title + '"/> ' + //'</p>'+
+            //'<p>' + 
               '<a class="target" itemid="'+ item.id +'" itemurl="' + itemUrl + '" title="' + description + /*item.title" || "description + + delHtmlTag(item.content.content) +*/ '">' + 
                 item.title + 
               '</a>' + 
