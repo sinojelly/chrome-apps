@@ -2,7 +2,7 @@
 <html>
   <head>
     <link rel="Stylesheet" type="text/css" href="popup.css"/>
-
+    <script type="text/javascript" src="datemethods.js"></script>
     <script type="text/javascript" src="prefs.js"></script>
     <script type="text/javascript" src="reader.js"></script>
     <script type="text/javascript">
@@ -182,8 +182,18 @@
       function renderItem(item) 
       {
         var itemUrl = item.alternate[0].href;
-		var description = getDescription(item).substring(0, 100);	
-        var imgSrc = itemUrl.substring(0, itemUrl.indexOf('/',9)) + "/favicon.ico"; // ignore https://		
+		var description = getDescription(item).substring(0, 400);	
+        var imgSrc = itemUrl.substring(0, itemUrl.indexOf('/',9)) + "/favicon.ico"; // ignore https://	
+        var updateDate = new Date('1970/01/01');
+		updateDate.addMinutes(-(new Date).getTimezoneOffset());
+		updateDate.addSeconds(Math.floor(item.updated));
+		var month = updateDate.getMonth() + 1;
+		var month_str = month;		
+		if (month < 10)
+		{
+		    month_str = "0" + month;
+		}
+
         return '' +
           '<li>' + 
             (reader.isStarred(item) ?
@@ -193,7 +203,11 @@
             ) + 
 			'<p>' + 
 			  '<img src="'+imgSrc+'" width="15" height="15" title="' + item.origin.title + '"/> ' + 
-              '<a class="target" itemid="'+ item.id +'" itemurl="' + itemUrl + '" title="' + description + '">' + item.title + '</a>' + 
+              '<a class="target" itemid="'+ item.id +'" itemurl="' + itemUrl + 
+              '" title="' + item.title + '&#013Updated: ' + 
+              updateDate.getFullYear() + "-" + month_str + "-" + updateDate.getDate() + " " +
+              updateDate.getHours() + ":" + updateDate.getMinutes() + ":" + updateDate.getSeconds() +
+              '&#013------------------------------------&#013' + description + '">' + item.title + '</a>' + 
             '</p>' 
           '</li>';
       }
@@ -334,8 +348,9 @@
 
         hookUpPopupEvents();
 
-        reader.getUnreadCount(function (importantCount, totalCount, isMax) {refresh();}, function (opt_isSignedOut) {handleError();});
-        //setTimeout(refresh, 50);
+        //reader.getUnreadCount(function (importantCount, totalCount, isMax) {refresh();}, function (opt_isSignedOut) {handleError();}); //auto swith important and all, but sometimes not right
+        //setTimeout(refresh, 50); // delay 50ms first
+        refresh(); // the fast, about 1~3s.  in users' eye, it's much faster.
       }
 
 
