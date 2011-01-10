@@ -137,11 +137,13 @@
 
       function starItem(id) 
       {
+        document.getElementById(id).className = "rating starred"; // sinojelly: change the view as quickly as possible, so user thinks it's very quickly.
         reader.starItem(id, refreshView, handleError);
       }
 
       function unstarItem(id) 
       {
+        document.getElementById(id).className = "rating";
         reader.unstarItem(id, refreshView, handleError);
       }
 
@@ -188,9 +190,9 @@
         return '' +
           '<li>' + 
             (reader.isStarred(item) ?
-              '<span class="rating starred" onclick="unstarItem(\'' + item.id + '\')"></span>' 
+              '<span id="' + item.id + '" class="rating starred" onclick="unstarItem(\'' + item.id + '\')"></span>' 
             :
-              '<span class="rating" onclick="starItem(\'' + item.id + '\')"></span>'
+              '<span id="' + item.id + '" class="rating" onclick="starItem(\'' + item.id + '\')"></span>'
             ) + 
 			'<p>' + 
 			  '<img src="'+imgSrc+'" width="15" height="15" title="' + item.origin.title + '"/> ' + 
