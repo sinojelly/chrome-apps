@@ -11,7 +11,6 @@
 
       var loadingEl;
       var itemsListEl;
-      //var newerItemsBtn;
       var olderItemsBtn;
       var refreshBtn;
       var messageDisplay;
@@ -19,15 +18,20 @@
 
       var items;
 
-      var mouseButtons = {
-        left: 0,
-        middle: 1
+      var mouseButtons = 
+      {
+		left: 0,
+		middle: 1
       };
 
-      function getReaderTab(callback) {
-        chrome.tabs.getAllInWindow(undefined, function(tabs) {
-          for (var i = 0, tab; tab = tabs[i]; i++) {
-            if (tab.url && reader.matchers.READER_URL.test(tab.url)) {
+      function getReaderTab(callback) 
+      {
+        chrome.tabs.getAllInWindow(undefined, function(tabs) 
+        {
+          for (var i = 0, tab; tab = tabs[i]; i++) 
+          {
+            if (tab.url && reader.matchers.READER_URL.test(tab.url)) 
+            {
               callback(tab);
               return;
             }
@@ -37,7 +41,8 @@
         });
       }
 
-      function requestUnreadCountUpdate(onReturn) {
+      function requestUnreadCountUpdate(onReturn) 
+      {
         console.log('update request');
         chrome.extension.sendRequest(
           {
@@ -49,27 +54,26 @@
       /*
         Refreshes the current view
       */
-      function refreshView() {
-        
-        /*if(reader.hasNewerItems()) {
-          newerItemsBtn.className = '';
-        } else {
-          newerItemsBtn.className = 'hidden';
-        }*/
-
-        if(reader.hasOlderItems()) {
+      function refreshView() 
+      {
+        if(reader.hasOlderItems()) 
+        {
           olderItemsBtn.className = '';
-        } else {
+        } 
+        else {
           olderItemsBtn.className = 'hidden';
         }
 
         items = reader.getCurrentPage();
         buildItemsList()
 
-        if(items.length === 0){
+        if(items.length === 0)
+        {
           itemsListEl.innerHTML = '';
           showMessage('Your reading list is empty');
-        } else {
+        } 
+        else 
+        {
           hideMessage();
         }
            
@@ -78,20 +82,24 @@
         stopLoadingAnimation();
       }
 
-      function showMessage(msg) {
+      function showMessage(msg) 
+      {
         messageDisplay.innerHTML = msg;
         messageDisplay.style.display = 'block';
       }
 
-      function hideMessage() {
+      function hideMessage() 
+      {
         messageDisplay.style.display = 'none';
       }
 
-      function addLeadingZero(timeValue) {
+      function addLeadingZero(timeValue) 
+      {
         return (timeValue < 10 ? '0' + timeValue : '' + timeValue);
       }
 
-      function displayUpdateTime() {
+      function displayUpdateTime() 
+      {
         var updateTime = reader.getLastUpdateTimestamp(); 
         refreshBtn.title = 'Updated at ' + 
                             addLeadingZero(updateTime.getHours()) + 
@@ -102,7 +110,8 @@
       /*
         Make log when error occurs
       */
-      function handleError(opt_signedOut) {
+      function handleError(opt_signedOut) 
+      {
         requestUnreadCountUpdate(function () {});
         showMessage(
           'An error has occured, are you ' + 
@@ -112,46 +121,48 @@
         stopLoadingAnimation();
       }
 
-      function markAsRead(id) {
-        function handleMarkAsReadSuccess() {
-          // request count update at extension bg page
-          requestUnreadCountUpdate(function () {});
-          // don't wait for response, just refresh the view 
-          refreshView();       
-        }
+      function handleMarkAsReadSuccess() 
+      { 
+        // don't wait for response, just refresh the view 
+        refreshView();       
+        
+        // request count update at extension bg page
+        requestUnreadCountUpdate(function () {});        
+      }
+
+      function markAsRead(id) 
+      {
         reader.markAsRead(id, handleMarkAsReadSuccess, handleError);
       }
 
-      function starItem(id) {
+      function starItem(id) 
+      {
         reader.starItem(id, refreshView, handleError);
       }
 
-      function unstarItem(id) {
+      function unstarItem(id) 
+      {
         reader.unstarItem(id, refreshView, handleError);
       }
 
-      function openOptions() {
+      function openOptions() 
+      {
         chrome.tabs.create({url: 'options.html'}); 
       }
 
-      function markAllAsRead() {
+      function markAllAsRead() 
+      {
 	    if (!confirm("Are you sure to mark all as read?"))
 		{
 		  return;
 		}
 
-        function handleMarkAsReadSuccess() {
-          // request count update at extension bg page
-          requestUnreadCountUpdate(function () {});
-          // don't wait for response, just refresh the view 
-          refreshView();       
-        }
         reader.markAllAsRead(handleMarkAsReadSuccess, handleError);
       }
 
 	  function delHtmlTag(str) 
       { 
-		return str.replace(/<[^>]+>/g,"");//去掉所有的html标记 
+		return str.replace(/<[^>]+>/g,"");
 	  }
 	  
 	  function getDescription(item)
@@ -159,17 +170,18 @@
 	      var description = "";
 	      if (item.content)
 		  {
-		      description = delHtmlTag(item.content.content); //.substring(0, 50);
+		      description = delHtmlTag(item.content.content); 
 		  }
 		  else if (item.summary)
 		  {
-		      description = delHtmlTag(item.summary.content); //.substring(0, 50);
+		      description = delHtmlTag(item.summary.content); 
 		  }
 		  return description;
 	  }
 	  
       // renders one item in the list
-      function renderItem(item) {
+      function renderItem(item) 
+      {
         var itemUrl = item.alternate[0].href;
 		var description = getDescription(item);	
         var imgSrc = itemUrl.substring(0, itemUrl.indexOf('/',9)) + "/favicon.ico"; // ignore https://		
@@ -180,51 +192,54 @@
             :
               '<span class="rating" onclick="starItem(\'' + item.id + '\')"></span>'
             ) + 
-			'<p>' + '<img src="'+imgSrc+'" width="15" height="15" title="' + item.origin.title + '"/> ' + //'</p>'+
-            //'<p>' + 
-              '<a class="target" itemid="'+ item.id +'" itemurl="' + itemUrl + '" title="' + description + /*item.title" || "description + + delHtmlTag(item.content.content) +*/ '">' + 
-                item.title + 
-              '</a>' + 
-            '</p>' //+ 
-//            '<p>from ' + 
-//              '<a class="source" sourceUrl="'+ item.origin.htmlUrl +'" title="' + item.origin.title + '">' + item.origin.title + '</a>' + 
-//            '</p>' + 
-//            '<ul class="options">' + 
-//              '<li><a onclick="markAsRead(\'' + item.id + '\')">Mark as Read</a></li>' +
-//            '</ul>' +
+			'<p>' + 
+			  '<img src="'+imgSrc+'" width="15" height="15" title="' + item.origin.title + '"/> ' + 
+              '<a class="target" itemid="'+ item.id +'" itemurl="' + itemUrl + '" title="' + description + '">' + item.title + '</a>' + 
+            '</p>' 
           '</li>';
       }
 
       // build complete itemlist
-      function buildItemsList() {
+      function buildItemsList() 
+      {
         var html = '';
-        for(var i = 0; i < items.length; i++) {
+        for(var i = 0; i < items.length; i++) 
+        {
           html += renderItem(items[i]);
         }
         itemsListEl.innerHTML = html;
         hookUpListEvents();
       }
 	  
-	  function markPageItemsAsRead() {
-        for(var i = 0; i < items.length; i++) {
+	  function markPageItemsAsRead() 
+	  {
+        for(var i = 0; i < items.length; i++) 
+        {
           markAsRead(items[i].id);
         }	  
 	  }
 
       // opens a link, optionally in a background tab
-      function openLink(url, opt_background) {
-        function handler(tab) {
-          if(tab) {
+      function openLink(url, opt_background) 
+      {
+        function handler(tab) 
+        {
+          if(tab) 
+          {
             var newTab = {url: url, selected: true};
-            if(opt_background) {
+            if(opt_background) 
+            {
               newTab.selected = false;
             }
 
             chrome.tabs.update(tab.id, newTab);
-          } else {
+          } 
+          else 
+          {
             var tab = {url: url};
 
-            if(opt_background) {
+            if(opt_background) 
+            {
               tab.selected = false;
             }
 
@@ -235,55 +250,31 @@
         getOptionalTab(handler);
       }
 
-      function onTargetMouseUp(event) {
-        // open items only after the item is marked as read otherwise the request is destroyed
-        function handleMarkAsReadSuccess() {
-            // open item in background
-			refreshView();             
-
-            // request count update at extension bg page
-            requestUnreadCountUpdate(function() {});			
-        }
-
+      function onTargetMouseUp(event) 
+      {
         var itemId = event.target.getAttribute('itemid');
         var itemUrl = event.target.getAttribute('itemurl');
         
-        if(event.button === mouseButtons.left || event.button === mouseButtons.middle) {
-		  openLink(itemUrl, true); 
-          reader.markAsRead(itemId, handleMarkAsReadSuccess, handleError);
-        }        
-      }
-
-      function onSourceMouseUp(event) {
-        var sourceUrl = event.target.getAttribute('sourceurl');
-
-         if(event.button === mouseButtons.middle || event.button === mouseButtons.left && event.ctrlKey) {
-          // open in background
-          openLink(sourceUrl, true);
-        } else if(event.button === mouseButtons.left) {
-          // open in foreground
-          openLink(sourceUrl);
-        }
+        openLink(itemUrl, true); 
+        reader.markAsRead(itemId, handleMarkAsReadSuccess, handleError);
       }
 
       // hook up events for interaction with items
-      function hookUpListEvents() {
+      function hookUpListEvents() 
+      {
         var targets = document.getElementsByClassName('target');
-        for(var i = 0; i < targets.length; i++) {
+        for(var i = 0; i < targets.length; i++) 
+        {
           targets[i].addEventListener('mouseup', onTargetMouseUp, true);
-        }
-
-        var sources = document.getElementsByClassName('source');
-        for(var i = 0; i < sources.length; i++) {
-          sources[i].addEventListener('mouseup', onSourceMouseUp, true);
         }
       }
 
-      function getOptionalTab(callback) {
-
+      function getOptionalTab(callback) 
+      {
         var openReaderBehavior = getOpenReaderBehavior();
 
-        if (openReaderBehavior === 'newtab') {
+        if (openReaderBehavior === 'newtab') 
+        {
           // open reader in new tab
           callback(null);
           return;
@@ -293,7 +284,8 @@
           if (
             openReaderBehavior === 'currenttab' || 
             openReaderBehavior === 'newtabpage' && tab.url === 'chrome://newtab/'
-          ) {
+             ) 
+          {
             //open reader in the selected tab
             callback(tab);
             return;
@@ -327,14 +319,15 @@
 
 
       // hook up events for interaction with popup
-      function hookUpPopupEvents() {
+      function hookUpPopupEvents() 
+      {
         openReaderBtn.addEventListener('click', onOpenReaderMouseClick, true);
       }
 
-      function init() {
+      function init() 
+      {
         loadingEl = document.getElementById('loading');
         itemsListEl = document.getElementById('itemslist');
-        //newerItemsBtn = document.getElementById('neweritems');
         olderItemsBtn = document.getElementById('olderitems');
         messageDisplay = document.getElementById('message');
         refreshBtn = document.getElementById('refresh');
@@ -355,15 +348,18 @@
       }
 
 
-      function startLoadingAnimation() {
+      function startLoadingAnimation() 
+      {
         document.body.className = 'loading';
       }
 
-      function stopLoadingAnimation() {
+      function stopLoadingAnimation() 
+      {
         document.body.className = '';
       }
 
-      function refresh() {
+      function refresh() 
+      {
         startLoadingAnimation();
         
         reader.refresh(
@@ -375,18 +371,14 @@
         );  
       }
 
-      function moveToNewerPage() {
-        startLoadingAnimation();
-        reader.moveToNewerPage(refreshView, handleError);
-      }
-
       function moveToOlderPage() {
 	    markPageItemsAsRead();
         //startLoadingAnimation();
         //reader.moveToOlderPage(refreshView, handleError);
       }
 
-      function setReadListAsImportant() {
+      function setReadListAsImportant() 
+      {
 	    onCategoryChange(false);
 	    reader.allList = false;
 		refresh();
@@ -400,20 +392,21 @@
 	  
 	  function onCategoryChange(isAllList)
 	  {
+	    var wordFont = "13px Arial, sans-serif";
 	    if (isAllList)
 		{
-		    document.getElementById("important").style.font="13px Arial, sans-serif";
-			document.getElementById("all").style.font="bold 13px Arial, sans-serif";
+		    document.getElementById("important").style.font = wordFont;
+			document.getElementById("all").style.font = "bold " + wordFont;
 		    return;
 		}
 		
-	    document.getElementById("important").style.font="bold 13px Arial, sans-serif";
-		document.getElementById("all").style.font="13px Arial, sans-serif";
+	    document.getElementById("important").style.font ="bold " + wordFont;
+		document.getElementById("all").style.font = wordFont;
 	  }
 
 
       var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-18936219-1']);
+      _gaq.push(['_setAccount', 'UA-20639758-1']);
       _gaq.push(['_trackPageview']);
 
       (function() {
@@ -441,7 +434,6 @@
       </section>
 
       <section>
-        <!--<div id="neweritems" class="hidden"><button title="Newer" onclick="moveToNewerPage()"></button></div>-->
         <div id="message"></div>
         <ul id="itemslist">
         
