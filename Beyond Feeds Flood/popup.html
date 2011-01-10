@@ -134,13 +134,14 @@
 
       function starItem(id) 
       {
-        document.getElementById(id).className = "rating starred"; // sinojelly: change the view as quickly as possible, so user thinks it's very quickly.
+	    //updated by sinojelly: avoid after star operation, then quickly close popup, the operation will not executed.
+        //document.getElementById(id).className = "rating starred"; // sinojelly: change the view as quickly as possible, so user thinks it's very quickly.
         reader.starItem(id, refreshView, handleError);
       }
 
       function unstarItem(id) 
       {
-        document.getElementById(id).className = "rating";
+        //document.getElementById(id).className = "rating";
         reader.unstarItem(id, refreshView, handleError);
       }
 
