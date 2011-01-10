@@ -238,23 +238,18 @@
       function onTargetMouseUp(event) {
         // open items only after the item is marked as read otherwise the request is destroyed
         function handleMarkAsReadSuccess() {
-          // request count update at extension bg page
-          requestUnreadCountUpdate(function() {});
-          
-          //if(event.button === mouseButtons.middle || event.button === mouseButtons.left && event.ctrlKey) {
             // open item in background
-            openLink(itemUrl, true);
-            refreshView();
-          //} else if(event.button === mouseButtons.left) {
-            // open item in foreground
-          //  openLink(itemUrl);
-          //}
+			refreshView();             
+
+            // request count update at extension bg page
+            requestUnreadCountUpdate(function() {});			
         }
 
         var itemId = event.target.getAttribute('itemid');
         var itemUrl = event.target.getAttribute('itemurl');
         
         if(event.button === mouseButtons.left || event.button === mouseButtons.middle) {
+		  openLink(itemUrl, true); 
           reader.markAsRead(itemId, handleMarkAsReadSuccess, handleError);
         }        
       }
