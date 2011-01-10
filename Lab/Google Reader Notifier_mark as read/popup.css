@@ -151,14 +151,9 @@ h1
 /* Itemlist: navigation
 --------------------------------- */
 
-#olderitems, #neweritems
+#olderitems
 {
   text-align: center;
-}
-
-#neweritems button
-{
-    background: url('images/arrow_up.png');
 }
     
 #olderitems button
@@ -200,11 +195,6 @@ h1
 #itemslist .target
 {
   color: #00C;
-}
-
-#itemslist .source
-{
-  color: #080;
 }
 
 #itemslist li
