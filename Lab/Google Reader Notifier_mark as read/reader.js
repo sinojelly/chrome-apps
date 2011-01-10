@@ -1,4 +1,4 @@
-﻿function Reader() {
+  function Reader() {
 
   this.baseUrl = 'www.google.com/reader/api/0/';
   this.apis = {
@@ -285,9 +285,13 @@ Reader.prototype.getUnreadCount = function (onSuccess, onError) {
       }	  
 	  if (importantCount <= 0)
 	  {
-	      this.allList = true;
+	      me.allList = true;
 	  }
-	  this.importantCount = importantCount;
+	  else
+	  {
+	      me.allList = false;
+	  }
+	  me.importantCount = importantCount;
       onSuccess(importantCount, totalCount, isMax);
     },
     onError
@@ -314,7 +318,7 @@ Reader.prototype.getUnreadItems_ = function (onSuccess, onError, opt_continuatio
   }
 
   var url;
-  if (this.allList)
+  if (me.allList)
   {
     url = this.getApiUrl(this.apis.READING_LIST) + '?' + this.buildQueryStringParameters_(queryParams);
   }
@@ -420,7 +424,7 @@ Reader.prototype.moveToOlderPage = function (onSuccess, onError) {
 */
 Reader.prototype.getCurrentPage = function () {
   var page = this.items_.slice(this.pageFirstItem_, this.pageFirstItem_ + this.ITEMS_NUM_IN_PAGE_);
-  return page;
+  return [page, this.allList];
 }
 
 /*
@@ -494,7 +498,7 @@ Reader.prototype.removeTag_ = function (id, tag, onSuccess, onError) { // TODO: 
   onSucces = function () { };
   onError = function (opt_isSignedOut) { }; 
 */
-Reader.prototype.markAsRead = function (id, onSuccess, onError) {
+Reader.prototype.markAsReadAndRefreshPage = function (id, onSuccess, onError) {
   var me = this;
 
   // to execute when 'read' label was added successfully
@@ -504,6 +508,12 @@ Reader.prototype.markAsRead = function (id, onSuccess, onError) {
   }
 
   me.addTag_(id, me.tags.READ, handleSuccess, onError);
+}
+
+Reader.prototype.markAsRead = function (id, onSuccess, onError) {
+  var me = this;
+
+  me.addTag_(id, me.tags.READ, function (){}, onError);
 }
 
 /*

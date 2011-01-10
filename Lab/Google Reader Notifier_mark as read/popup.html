@@ -64,8 +64,10 @@
           olderItemsBtn.className = 'hidden';
         }
 
-        items = reader.getCurrentPage();
-        buildItemsList()
+        var ret = reader.getCurrentPage();        
+        items = ret[0];
+        onCategoryChange(ret[1]);
+        buildItemsList();
 
         if(items.length === 0)
         {
@@ -130,11 +132,6 @@
         requestUnreadCountUpdate(function () {});        
       }
 
-      function markAsRead(id) 
-      {
-        reader.markAsRead(id, handleMarkAsReadSuccess, handleError);
-      }
-
       function starItem(id) 
       {
         document.getElementById(id).className = "rating starred"; // sinojelly: change the view as quickly as possible, so user thinks it's very quickly.
@@ -185,7 +182,7 @@
       function renderItem(item) 
       {
         var itemUrl = item.alternate[0].href;
-		var description = getDescription(item);	
+		var description = getDescription(item).substring(0, 100);	
         var imgSrc = itemUrl.substring(0, itemUrl.indexOf('/',9)) + "/favicon.ico"; // ignore https://		
         return '' +
           '<li>' + 
@@ -213,11 +210,11 @@
         hookUpListEvents();
       }
 	  
-	  function markPageItemsAsRead() 
+	  function markItemsAsRead(itemsToMark) 
 	  {
-        for(var i = 0; i < items.length; i++) 
+        for(var i = 0; i < itemsToMark.length; i++) 
         {
-          markAsRead(items[i].id);
+          reader.markAsRead(itemsToMark[i].id, function (){}, handleError);
         }	  
 	  }
 
@@ -258,7 +255,7 @@
         var itemUrl = event.target.getAttribute('itemurl');
         
         openLink(itemUrl, true); 
-        reader.markAsRead(itemId, handleMarkAsReadSuccess, handleError);
+        reader.markAsReadAndRefreshPage(itemId, handleMarkAsReadSuccess, handleError);
       }
 
       // hook up events for interaction with items
@@ -336,17 +333,9 @@
         openReaderBtn = document.getElementById('openreader');
 
         hookUpPopupEvents();
-		
-		reader.allList = false;
-		onCategoryChange(false);
-		
-		if (reader.importantCount <= 0)
-		{
-		  reader.allList = true;
-		  onCategoryChange(true);
-		}
 
-        setTimeout(refresh, 50);
+        reader.getUnreadCount(function (importantCount, totalCount, isMax) {refresh();}, function (opt_isSignedOut) {handleError();});
+        //setTimeout(refresh, 50);
       }
 
 
@@ -365,18 +354,21 @@
         startLoadingAnimation();
         
         reader.refresh(
-          function () {
+          function () {          
             refreshView();
-            requestUnreadCountUpdate(function() {});
+            requestUnreadCountUpdate(function() {});            
           }, 
           handleError    
         );  
       }
 
       function moveToOlderPage() {
-	    //markPageItemsAsRead();
+        var itemsToMark = [].concat(items);
+        
         startLoadingAnimation();
         reader.moveToOlderPage(refreshView, handleError);
+
+        markItemsAsRead(itemsToMark);
       }
 
       function setReadListAsImportant() 
@@ -420,7 +412,7 @@
     </script>
   </head>
 
-  <body onload="init();" onunload="chrome.extension.getBackgroundPage().checkList();">
+  <body onload="init();">
     <div>
       <section>
         <ul id="commands">
