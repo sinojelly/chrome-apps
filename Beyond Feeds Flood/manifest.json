@@ -5,7 +5,7 @@
       "default_icon": "images/button/signed-out-1.png",
       "popup": "popup.html"
    },
-   "description": "Counts the unread items in Google Reader, treat Important label specially, shows a preview in a popup, mark items as read/starred.",
+   "description": "Counts the unread items in Google Reader, treat Important label specially, list items in a popup, mark items as read automaticly.",
    "icons": {
       "16": "images/icon-16.png",
       "32": "images/icon-32.png",
@@ -35,5 +35,5 @@
 		 "http://www.google.com/reader/",
 		 "https://www.google.com/reader/" 
    ],
-   "version": "1.0.1"
+   "version": "1.0.4"
 }

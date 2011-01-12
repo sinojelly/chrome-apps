@@ -385,6 +385,7 @@
         reader.moveToOlderPage(refreshView, handleError);
 
         markItemsAsRead(itemsToMark);
+		requestUnreadCountUpdate(function() {});
       }
 
       function setReadListAsImportant() 
