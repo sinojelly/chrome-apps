@@ -1,0 +1,176 @@
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+<style>
+body {
+	font-family: Tahoma;
+	font-size: 12px;
+	text-decoration: none;
+	margin-top: 0px;
+	margin-right: 0px;
+	margin-left: 0px;
+	margin-bottom: 0px;
+	background-color: #FFFFFF;
+}
+table{
+    font-family: Tahoma;
+	font-size: 12px;
+	width: 120px;
+}
+td{
+cursor:hand;
+background-color:#ffffff;
+		color:#000000;
+}
+</style>
+<script>
+
+var lastShowId = "";
+
+var u = "";
+
+function getBaseInfo()
+{
+	// 更新点击时的最大微博id
+	var backgroundPage = chrome.extension.getBackgroundPage();
+	//backgroundPage.maxIdWhenClicked = backgroundPage.maxId;
+	localStorage["maxIdWhenClicked"] = backgroundPage.maxId;
+	
+	//保存变量
+	u = backgroundPage.getUrl();
+}
+
+function getPopupUrl() {
+  //var url = "chrome-extension://lhndnlbfbljchljcgbhpncbkbgeibcba/popup.html";
+  var url =  chrome.extension.getURL("popup.html"); // work ok
+  return url;
+}
+ 
+ function goNewTab() {
+ 	openNewTab(getPopupUrl(), false, true);
+}
+
+function goMyTwitter()
+{
+	var myTwitterUrl = "http://t.sina.com.cn";
+	openNewTab(myTwitterUrl, true, false);
+}
+
+function openNewTab(myurl, focus, remove)
+{
+ chrome.tabs.getAllInWindow(undefined, function(tabs) {
+    for (var i = 0, tab; tab = tabs[i]; i++) { 
+      if (tab.url.indexOf(myurl)==0) {
+      	if (remove)
+      	{
+      		chrome.tabs.remove(tab.id);
+      	}
+      	else
+      	{
+	        chrome.tabs.update(tab.id, {selected: focus});
+	        return;
+        }
+      }
+    }  
+	chrome.tabs.create({url:myurl, selected: focus});
+  });
+}
+
+function parseUrl(content)
+{
+	return content.replace(/(http[s]?:[a-z0-9\/\.]*)/gi, "<a href=\"javascript:void(0)\" onclick=\"openNewTab('$1', false, false);\">$1</a>"); 
+}
+
+function updatePopup()
+{
+	 getBaseInfo();
+	 var myurl = u;
+	 if (lastShowId != "")
+	 {
+	 	  myurl += "&max_id=";    
+	 	  lastShowIdInt = parseInt(lastShowId); 
+	 	  lastShowIdInt = lastShowIdInt - 1;   
+	 	  myurl += lastShowIdInt;	 	
+	 }
+	 
+	 //document.body.innerHTML = "";
+	 var xmlHttp = new XMLHttpRequest();
+	 xmlHttp.open('GET', myurl, true);     
+   xmlHttp.onload = function() {
+   if (xmlHttp.readyState == 4) {
+         var allStatus = xmlHttp.responseXML.getElementsByTagName("status");
+         for (var i = 0, one_status; one_status = allStatus[i]; i++) {
+         	   //if (i == 0)
+         	   //{
+         	   //	  maxId = one_status.getElementsByTagName('id')[0].textContent;
+         	   //}
+         	   var one_status_id = one_status.getElementsByTagName('id')[0].textContent;
+         	   var one_status_str = "<HR><font color=\"#808080\">";//"";
+         	   one_status_str += one_status.getElementsByTagName('created_at')[0].textContent+"</font>&nbsp;&nbsp;";
+         	   var user_node = one_status.getElementsByTagName('user')[0];
+         	   //one_status_str += "<a href=\"http://t.sina.com.cn/"+user_node.getElementsByTagName('id')[0].textContent+"\"  target=\"_blank\">"; // 通过id可以访问用户微博主页
+         	   one_status_str += "<a href=\"javascript:void(0)\" onclick=\"openNewTab('http://t.sina.com.cn/"+user_node.getElementsByTagName('id')[0].textContent+"', false, false);\">"; // 通过id可以访问用户微博主页
+         	   one_status_str += user_node.getElementsByTagName('screen_name')[0].textContent+"</a>&nbsp;&nbsp;";
+         	   one_status_str += "<a href=\"javascript:void(0)\" onclick=\"retweet('"+one_status_id+"');\">转发</a>";
+
+         	   one_status_str += "<br>"+parseUrl(one_status.getElementsByTagName('text')[0].textContent)+"<br>";
+         	   // 转发信息
+         	   var reTweet = one_status.getElementsByTagName('retweeted_status');
+         	   if (reTweet.length > 0)
+         	   {
+         	   	   reTweet_text = reTweet[0].getElementsByTagName('text');
+         	   	   if (reTweet_text.length > 0)
+         	   	   {
+         	   	   	  // 获取原作者名字
+         	   	   	  reTweet_user = reTweet[0].getElementsByTagName('user');
+         	   	   	  reTweet_user_name = reTweet_user[0].getElementsByTagName('screen_name');
+         	   	   	  one_status_str += "RT @"+reTweet_user_name[0].textContent+": " + parseUrl(reTweet_text[0].textContent)+"<br>";
+         	   	   }
+         	   }
+         	   document.body.innerHTML+="<p>" + one_status_str;
+         	   var img_elem = one_status.getElementsByTagName('original_pic')[0];
+         	   if (null != img_elem)
+         	   {
+				        var img = document.createElement("image");
+				        img.src = img_elem.textContent;
+				        document.body.appendChild(img);
+				        //document.body.innerHTML+="<img src=\""+img_elem.textContent+"\" width=\"600\" height=\"600\"/>";
+				     }
+				     //document.body.innerHTML+="<br><textarea id='"+one_status_id+"' cols=\"50\" style='overflow-y:hidden; overflow-x: hidden; height: 26px;'></textarea><button onclick=\"retweet('"+one_status_id+"');\">转发</button></p>";
+				     document.body.innerHTML+="</p>";
+				     lastShowId = one_status.getElementsByTagName('id')[0].textContent;			     
+				  }
+          if (allStatus.length == 0) // 新浪API故障,未获取到微博
+          {
+          	 document.body.innerHTML="<table border=0 id=t1><tr><td onclick=\"goMyTwitter();\" width=200><img src='home.png' width=20 height=20/>微博API短暂故障,进入我的首页</td></tr></table>";
+          }
+          else
+          {
+  		       //document.body.innerHTML+="<table border=0 id=t1><tr><td onclick=\"updatePopup();\"  width=\"200\"><img src='home.png' width=20 height=20/>显示更多&nbsp;&nbsp;</td><td  onclick=\"goNewTab();\" width=200><img src='home.png' width=20 height=20/>新标签页</td></tr></table>";
+  		       document.body.innerHTML+="<td onclick=\"updatePopup();\"  width=\"100\"><img src='home.png' width=20 height=20/>显示更多&nbsp;&nbsp;</td><td  onclick=\"goNewTab();\" width=100><img src='home.png' width=20 height=20/>新标签页</td>";
+  		    }
+      }
+  }
+  xmlHttp.send(myurl);
+}
+
+function retweet(id)
+{
+	var myurl = "http://api.t.sina.com.cn/statuses/repost.xml?source=2399968176&id="+id;
+	 var xmlHttp = new XMLHttpRequest();
+	 xmlHttp.open('PUT', myurl, true);     
+   xmlHttp.onload = function() {
+   if (xmlHttp.readyState == 4) {
+   	//alert("转发完成");
+   	//document.body.innerText += xmlHttp.responseText;
+   }
+  }
+  xmlHttp.send(myurl);
+}
+
+updatePopup();
+
+
+ </script>
+<body>
+</body>
+</html>

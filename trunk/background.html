@@ -1,0 +1,153 @@
+<html> 
+	
+<head> 
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+<script> 
+localStorage
+ 
+ 
+var myTwitterTitle = "";
+
+var tiwtterHome = "http://api.t.sina.com.cn/statuses/friends_timeline.xml?source=2399968176";
+
+var maxId = "";
+var maxIdWhenClicked = ""; // max id when clicked
+var updatedCount ="";
+ 
+function showTooltip()
+{
+  myTwitterTitle = updatedCount+"/新微博\n"+getTwitterName(); 
+  chrome.browserAction.setTitle({title:myTwitterTitle});
+  chrome.browserAction.setIcon({path:"icon.png"});  
+  chrome.browserAction.setBadgeBackgroundColor({color:[57,239,244, 240]});  
+
+  chrome.browserAction.setBadgeText({text: updatedCount==0?"":updatedCount>9999?">N":updatedCount+""});
+}
+
+function getUrl()
+{
+	var u = localStorage["twitterUrl"];
+	if (!u)
+	{
+		u = tiwtterHome;
+	}
+//var u = "http://api.t.sina.com.cn/statuses/user_timeline.xml?user_id=1639650452&source=2399968176"; //潘帕斯不羁的风
+//var u = "http://api.t.sina.com.cn/statuses/user_timeline.xml?user_id=1494759712&source=2399968176"; //月光博客
+   var count = "&count=";
+   if (localStorage["count"])
+   {
+   	  count+= localStorage["count"];
+   }
+   else
+   {
+   	  count+= "40";
+   }
+   
+	 return u+count;
+}
+
+function isUpdated()
+{
+	 var myurl = getUrl();
+	 maxIdWhenClicked = localStorage["maxIdWhenClicked"];
+	 if (maxIdWhenClicked)
+	 {
+	 	  myurl += "&since_id=";    
+	 	  maxIdWhenClickedInt = parseInt(maxIdWhenClicked); 
+	 	  maxIdWhenClickedInt = maxIdWhenClickedInt + 1;   
+	 	  myurl += maxIdWhenClickedInt;	 	  
+	 }
+
+	 //document.body.innerHTML = "";
+	 var xmlHttp = new XMLHttpRequest();
+	 xmlHttp.open('GET', myurl, true);     
+   xmlHttp.onload = function() {
+   if (xmlHttp.readyState == 4) {
+         var allStatus = xmlHttp.responseXML.getElementsByTagName("status");
+         if (allStatus.length > 0)
+         {
+         	 maxId = allStatus[0].getElementsByTagName('id')[0].textContent;	
+         }
+         updatedCount = allStatus.length;
+         showTooltip();
+      }
+  }
+  xmlHttp.send(myurl);
+}
+ 
+
+function login()
+{
+   isUpdated();
+}
+function init()
+{
+  chrome.browserAction.setIcon({path:"sina_not_logged_in.png"}); 
+  chrome.browserAction.setBadgeBackgroundColor({color:[190, 190, 190, 230]}); 
+  chrome.browserAction.setBadgeText({text: updatedCount});
+  chrome.browserAction.setTitle({title:myTwitterTitle});
+ // chrome.browserAction.onClicked.addListener(function(tab) { goMyTwitter();});
+  if (!localStorage["twitterName0"]) // 未保存twitterName/Id信息
+  {
+  	localStorage["twitterName0"] = "潘帕斯不羁的风";
+  	localStorage["twitterId0"] = "1639650452";
+
+  	localStorage["twitterName1"] = "美女精品图库";
+  	localStorage["twitterId1"] = "1642591945";
+
+  	localStorage["twitterName2"] = "图说天下";
+  	localStorage["twitterId2"] = "1364882532";  	
+
+  	localStorage["twitterName3"] = "科学探索";
+  	localStorage["twitterId3"] = "1642632622";
+  }
+  login();
+}
+
+function stripId(s) { 
+     return s.replace(/http:\/\/api.t.sina.com.cn\/statuses\/user_timeline.xml\?user_id=(\d+)&.*/gi, "$1"); 
+}
+
+function getTwitterName()
+{
+	var twitterUrl = getUrl();
+	var twitterId = stripId(twitterUrl);
+
+	if (twitterId.indexOf(tiwtterHome)==0)
+	{
+		return "我的首页";
+	}
+	
+	for (var i = 0; ; i++)
+	{
+		var twitterName = localStorage["twitterName"+i];
+		if (!twitterName)
+		{
+			break;
+		}
+		if (twitterId == localStorage["twitterId"+i])
+		{
+			return twitterName;
+		}
+  }
+  return "未知微博";
+}
+
+//定义一个反复执行的调用 
+var id=window.setInterval(isUpdated,1*60*1000);//1*60*1000 1分钟循环
+ 
+
+
+// Called when the user clicks on the browser action.
+//chrome.browserAction.onClicked.addListener(function(tab) {
+//  goNewTab();
+//});
+ 
+
+</script> 
+</head> 
+<body onload="init()"> 
+<img id="logged_in" src="icon.png"> 
+<canvas id="canvas" width="19" height="19"> 
+</body> 
+</html>
